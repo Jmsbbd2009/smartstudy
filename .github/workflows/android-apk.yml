@@ -1,0 +1,54 @@
+name: Build Android APK
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: 'HTTPS API URL ending in /api/v1/'
+        required: true
+      web_url:
+        description: 'HTTPS admin web URL'
+        required: true
+permissions:
+  contents: read
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: smart-study-control/android
+    env:
+      STUDY_API_URL: ${{ inputs.api_url }}
+      STUDY_WEB_URL: ${{ inputs.web_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate public URLs
+        working-directory: .
+        run: |
+          python3 - <<'PY'
+          import os
+          from urllib.parse import urlsplit
+          for key in ("STUDY_API_URL", "STUDY_WEB_URL"):
+              value = os.environ[key]
+              parsed = urlsplit(value)
+              assert parsed.scheme == "https" and parsed.hostname, "HTTPS URL required"
+              assert not parsed.username and not parsed.password and not parsed.query and not parsed.fragment
+              assert all(c not in value for c in ('"', '\\', '\n', '\r', '$')), "Invalid URL"
+          assert os.environ["STUDY_API_URL"].endswith("/api/v1/"), "API must end in /api/v1/"
+          PY
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - run: chmod +x gradlew
+      - name: Test and build installable test APK
+        run: ./gradlew :domain:test testDebugUnitTest assembleDebug "-PDEBUG_API_URL=$STUDY_API_URL" "-PDEBUG_ADMIN_WEB_URL=$STUDY_WEB_URL"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: StudyControl-test-apk
+          path: smart-study-control/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
