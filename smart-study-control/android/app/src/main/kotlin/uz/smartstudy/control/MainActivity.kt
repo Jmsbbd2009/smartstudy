@@ -289,20 +289,20 @@ import uz.smartstudy.domain.PhotoChallenge
         selected.forEach { file -> Text(file.name + " · " + (AssignmentAttachments.mediaType(context,file.uri) ?: stringResource(R.string.unsupported_attachment))) }
         if(createdId.isEmpty()) Action(R.string.save,child.isNotBlank() && title.isNotBlank() && subject.isNotBlank() && selected.all { AssignmentAttachments.mediaType(context,it.uri)!=null }) {
             vm.run {
-                val assignment=repository.api.post("assignments",body("student_id" to child,"title" to title,"subject" to subject,"description" to description))
+                val assignment=vm.repository.api.post("assignments",body("student_id" to child,"title" to title,"subject" to subject,"description" to description))
                 createdId=assignment.text("id")
-                for(file in selected) if(file.uri.toString() !in uploaded) { AssignmentAttachments.upload(context,repository.api,createdId,file);uploaded.add(file.uri.toString());uploadedNames.add(file.name) }
+                for(file in selected) if(file.uri.toString() !in uploaded) { AssignmentAttachments.upload(context,vm.repository.api,createdId,file);uploaded.add(file.uri.toString());uploadedNames.add(file.name) }
                 selected=emptyList()
-                repository.refreshAssignments()
+                vm.repository.refreshAssignments()
             }
         } else {
             Text(stringResource(if(selected.isEmpty()) R.string.assignment_created else R.string.attachments_uploaded_hint))
             uploadedNames.forEach { Text(it) }
             Action(R.string.upload_attachments,selected.isNotEmpty()) {
                 vm.run {
-                    for(file in selected) if(file.uri.toString() !in uploaded) { AssignmentAttachments.upload(context,repository.api,createdId,file);uploaded.add(file.uri.toString());uploadedNames.add(file.name) }
+                    for(file in selected) if(file.uri.toString() !in uploaded) { AssignmentAttachments.upload(context,vm.repository.api,createdId,file);uploaded.add(file.uri.toString());uploadedNames.add(file.name) }
                     selected=emptyList()
-                    repository.refreshAssignments()
+                    vm.repository.refreshAssignments()
                 }
             }
         }
