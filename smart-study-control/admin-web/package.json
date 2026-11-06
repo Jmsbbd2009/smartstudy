@@ -1,0 +1,44 @@
+{
+  "name": "smart-study-admin",
+  "private": true,
+  "version": "0.3.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest run",
+    "preview": "vite preview --host 0.0.0.0",
+    "test:e2e": "python tests/run_e2e.py"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "5.2.2",
+    "@radix-ui/react-slot": "1.2.3",
+    "@tanstack/react-query": "5.80.6",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "lucide-react": "0.511.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-hook-form": "7.57.0",
+    "recharts": "3.10.1",
+    "tailwind-merge": "3.2.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/react": "16.3.0",
+    "@types/node": "24.19.2",
+    "@types/react": "19.1.6",
+    "@types/react-dom": "19.1.6",
+    "@vitejs/plugin-react": "4.5.1",
+    "autoprefixer": "10.4.21",
+    "jsdom": "27.0.0",
+    "playwright": "1.62.1",
+    "postcss": "8.5.32",
+    "tailwindcss": "3.4.17",
+    "typescript": "5.8.3",
+    "undici": "8.12.3",
+    "vite": "6.4.5",
+    "vitest": "5.0.5"
+  }
+}

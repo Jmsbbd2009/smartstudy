@@ -1,0 +1,21 @@
+{
+  "passed": 13,
+  "checks": [
+    "Real parent login",
+    "Guardian config saved on real backend",
+    "Real PDF upload, extraction and source-page UI",
+    "Missing live AI credentials produce a visible error",
+    "Source-grounded editor and real SVG concept map",
+    "Validated answer-key publication",
+    "Guardian assigns reading with bounded automatic reward",
+    "Student role and private reading assignment",
+    "Self-reported reading separated from checked understanding",
+    "Shuffled objective test graded and 15 minutes granted",
+    "Server wallet and reading coverage verified",
+    "Guardian receives real test history",
+    "Teacher classroom and household isolation"
+  ],
+  "transport": "jsdom rendered UI + actual HTTP to FastAPI/SQLite; no mocked responses",
+  "browser_execution": false,
+  "live_ai": "not configured; unavailable-state tested"
+}

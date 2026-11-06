@@ -1,0 +1,15 @@
+.git
+.env
+**/node_modules
+**/build
+**/.gradle
+**/.kotlin
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/*.db
+**/qa-private
+android/local.properties
+**/uploads
+**/dist
+artifacts

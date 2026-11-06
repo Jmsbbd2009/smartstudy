@@ -1,0 +1,14 @@
+{
+  "passed": 7,
+  "checks": [
+    "Normalized numeric super admin login",
+    "Super admin creates real school administrator",
+    "Super admin assigns real teacher to selected school",
+    "Staff announcement persisted on real backend",
+    "Temporary credential cannot enter teacher dashboard",
+    "Teacher renews password and receives least-privilege navigation",
+    "Teacher receives and acknowledges persisted announcement"
+  ],
+  "transport": "Real React DOM + actual HTTP to disposable FastAPI/SQLite; no mocked responses",
+  "native_biometrics": "not exercised; cryptographic signature validation tested separately"
+}

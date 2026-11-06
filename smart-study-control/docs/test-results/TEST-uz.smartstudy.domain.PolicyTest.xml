@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="uz.smartstudy.domain.PolicyTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-05T11:09:40" hostname="c7a5a8de889c" time="0.032">
+  <properties/>
+  <testcase name="midnightUsesPreviousDay" classname="uz.smartstudy.domain.PolicyTest" time="0.021"/>
+  <testcase name="localFocusBeatsEarnedButParentOverrideStillWins" classname="uz.smartstudy.domain.PolicyTest" time="0.001"/>
+  <testcase name="essentialAlwaysWins" classname="uz.smartstudy.domain.PolicyTest" time="0.0"/>
+  <testcase name="alarmCrossesWeekendAndDstGap" classname="uz.smartstudy.domain.PolicyTest" time="0.006"/>
+  <testcase name="wallClockChangeCannotExtendElapsedLease" classname="uz.smartstudy.domain.PolicyTest" time="0.001"/>
+  <testcase name="precedenceSafetyOverrideSleepStudyRewardDefault" classname="uz.smartstudy.domain.PolicyTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="uz.smartstudy.domain.PhotoChallengeTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-05T11:09:40" hostname="c7a5a8de889c" time="0.046">
+  <properties/>
+  <testcase name="configuredSafeObjectAndConfidentMatchCompleteTask" classname="uz.smartstudy.domain.PhotoChallengeTest" time="0.045"/>
+  <testcase name="unrelatedOrUncertainPhotoDoesNotCompleteAlarm" classname="uz.smartstudy.domain.PhotoChallengeTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

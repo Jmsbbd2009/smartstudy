@@ -1,0 +1,74 @@
+{
+  "date": "2026-11-05",
+  "student_data_sent": false,
+  "groq": {
+    "models_http_status": 200,
+    "available_model_ids": [
+      "whisper-large-v3",
+      "qwen/qwen3.8-27b",
+      "whisper-large-v3-turbo",
+      "openai/gpt-oss-120b",
+      "openai/gpt-oss-safeguard-20b",
+      "meta-llama/llama-prompt-guard-2-86m",
+      "canopylabs/orpheus-v1-english",
+      "meta-llama/llama-prompt-guard-2-22m",
+      "canopylabs/orpheus-arabic-saudi",
+      "allam-2-7b",
+      "openai/gpt-oss-20b"
+    ],
+    "pipeline": "passed",
+    "model": "groq:openai/gpt-oss-120b",
+    "observations": [
+      {
+        "host": "api.groq.com",
+        "status": 200,
+        "finish_reason": null
+      },
+      {
+        "host": "api.groq.com",
+        "status": 200,
+        "finish_reason": "stop"
+      },
+      {
+        "host": "api.groq.com",
+        "status": 200,
+        "finish_reason": "stop"
+      },
+      {
+        "host": "api.groq.com",
+        "status": 200,
+        "finish_reason": "stop"
+      }
+    ]
+  },
+  "book_lesson": {
+    "passed": true,
+    "concepts": 3,
+    "questions": 3,
+    "source_quotes": "validated",
+    "model": "groq:openai/gpt-oss-120b"
+  },
+  "practice_plan": {
+    "passed": true,
+    "tasks": 2,
+    "model": "groq:openai/gpt-oss-120b",
+    "executed_on_students": false
+  },
+  "huggingface": {
+    "live_inference": false,
+    "token_http_status": 200,
+    "token_accepted": true,
+    "text_http_status": 402,
+    "structured_pipeline": "unavailable",
+    "pipeline_http_status": 503
+  },
+  "deepseek": {
+    "models_http_status": 401,
+    "key_accepted": false
+  },
+  "telegram": {
+    "get_me_passed": true,
+    "username": "un_censoredai_Bot",
+    "live_otp_delivery": "not run: no real linked recipient"
+  }
+}

@@ -1,0 +1,15 @@
+# Offline synchronization
+
+Room is the assignment-list source of truth. Assignment submissions are persisted to an outbox before any network call. Every outbox item has a UUID idempotency key and account owner. A retry reuses the exact path, body and key. Permanent 400/403/404/409/422 errors remain visible for manual review/discard; retryable network/server errors are retried by WorkManager with network constraints. Account partitioning prevents replaying one child's submission as another user. Android's queue screen exposes failed text for correction instead of discarding it silently.
+
+Server policy versions are monotonic. Client refuses rollback. Guardian writes include `expected_version`; conflicts return 409 and require reload. Time schedules use the policy's IANA zone, ISO weekdays and local minutes; overnight windows belong to the day they start. Clock/time-zone broadcasts re-evaluate cached rules.
+
+Reward spending is online-only in this implementation. Offline submissions never create provisional spendable credit. Reserve → OS apply → acknowledge. Pending leases expire after 90 seconds and refund lazily on wallet/session/redemption access. Active leases have a conservative elapsedRealtime deadline starting before the network exchange, persisted with Android BOOT_COUNT. Reboot clears leases and reapplies cached restrictions. Connectivity loss after successful ack does not extend the lease. Connectivity loss during ack immediately restores cached restrictions; if the server processed the ack but the response was lost, minutes can be charged despite early relock. Support reconciliation for that ambiguity is outstanding.
+
+Policy reevaluation uses best-effort schedule ticks plus an exact expiry alarm when available. Managed timed access requires exact-alarm capability before reservation. Android/OEM scheduling, force-stop and clock tampering are not tamper-proof. Wall-clock changes still affect study/sleep windows, but cannot lengthen an existing same-boot monotonic lease. Formal physical-device delivery qualification is required.
+
+Cached assignments, local focus timers, local alarms and policy evaluation work without network. Downloaded offline quiz attempts, cached reports, offline AI, offline budget spending and automatic merge of edited assignments are not implemented. Alarms are locally persisted and scheduled; server alarm records are an API surface but are not synchronized into local alarms yet.
+
+
+## Reading cache, Room version 2
+Reading plans, previously opened source text and lesson documents are cached under `(userId, path)` in `learning_cache`. The manual 1→2 migration only adds this table, preserving outbox/assignment rows. Offline fallback never masks an online 401/403/404 denial. Cache size per document is bounded; it is an opportunistic read cache, not a complete book download or entitlement revocation mechanism. Previously authorized cached data cannot be remotely erased while a device stays offline. Reading page marking, test attempts and rewards remain online; no offline provisional reading credit. Backend sources and published lesson versions remain authoritative after reconnection.

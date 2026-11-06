@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="uz.smartstudy.control.StudyViewModelTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-05T11:26:36" hostname="c7a5a8de889c" time="0.142">
+  <properties/>
+  <testcase name="successfulLoginPersistsCredentialsAndLoadsCache" classname="uz.smartstudy.control.StudyViewModelTest" time="0.139"/>
+  <testcase name="failedLoginNeverAuthenticatesOrLeavesBusyState" classname="uz.smartstudy.control.StudyViewModelTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-05",
+  "version": "0.3.0",
+  "android": {
+    "jvm_tests": 10,
+    "failures": 0,
+    "debug_build": "passed",
+    "instrumentation_apk_build": "passed",
+    "instrumentation_execution": "not run: no emulator/device",
+    "camera_gps_biometrics_device_owner": "not physically tested"
+  },
+  "backend": {
+    "tests": 58,
+    "failures": 0,
+    "database": "SQLite",
+    "migration_round_trip": "passed",
+    "alembic_check": "no schema drift"
+  },
+  "web": {
+    "unit_dom_tests": 11,
+    "failures": 0,
+    "typecheck": "passed",
+    "production_build": "passed",
+    "live_http_workflow_tests": 2,
+    "live_http_workflow_checks": 20,
+    "transport": "rendered jsdom UI + actual FastAPI/SQLite, no mocked HTTP responses",
+    "native_browser_execution": "not run"
+  },
+  "api": {
+    "paths": 103,
+    "schemas": 86,
+    "orm_tables": 50
+  },
+  "live_ai": {
+    "groq": "tutor + source-grounded lesson + practice plan passed on public samples with input/output moderation",
+    "huggingface": "token accepted, inference 402",
+    "deepseek": "key rejected 401"
+  },
+  "telegram": "getMe passed; OTP/delivery behavior covered by isolated integration tests, no actual recipient linked",
+  "docker": "not run",
+  "postgresql": "not run locally; configured in CI",
+  "dependency_audits": {
+    "npm_known_advisories": 0,
+    "python_known_advisories": 0
+  }
+}
