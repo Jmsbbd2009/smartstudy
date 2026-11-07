@@ -1,20 +1,27 @@
 # Implementation progress
 
-Updated: 2026-11-07, v0.4.2 Android branding and API-only deployment configuration.
+Updated: 2026-11-07, v0.4.2 GitHub release and Render deployment.
 
-## v0.4.2 — Android branding and no public website
+## v0.4.2 — Published Android preview
 
-Completed locally:
-- Added the supplied SMART STUDY PNG as a cleaned transparent brand asset; recolored its dark wordmark for the navy UI, applied it to the launcher icon, login, staff/student dashboards, and an animated launch splash.
-- Added a compressed, accessible student-reading hero illustration in the student home screen, with Uzbek, English, and Russian descriptions.
-- Raised Android versionCode/versionName to 7/0.4.2 and removed the Android link to a separate web panel.
-- Removed the website service from local Compose and the web build from CI. FastAPI remains the Android backend; the React admin source is retained in the repository but is not configured as a deployed website.
+Completed:
+- Supplied PNG brand asset, adaptive launcher icon, animated launch splash, login/dashboard branding and compressed student-reading illustration, including localized accessibility descriptions.
+- Android versionCode/versionName 7/0.4.2; parent actions and student family/device-enrollment navigation restored. Preserved the previously fixed assignment repository references and corrected the Telegram help resource name.
+- Bounded network timeouts now tolerate the free Render instance waking from idle. The built APK targets the existing HTTPS API, not an emulator address.
+- Uploaded the updated source to `Jmsbbd2009/smartstudy`. The root Actions workflow tests the API and Android, then publishes immutable commit-specific preview releases. No public website build/deploy is configured; retained React source is not deployed.
+- Render service `studycontrol-api` deployed source `b13b376d1b37322d1b6c969982b1d7b3f6cd85fa`; dashboard showed Live and `/health/ready` returned `{"status":"ready"}`. Existing super admin remained unchanged.
 
-Not completed / not verified:
-- GitHub API shows no accessible repositories or installed accounts, and the restored source archive has no Git metadata. No commit or upload was made.
-- The provided Render dashboard tab is not available through this session's browser surface; service settings, environment variables, and deployment status could not be inspected or changed.
-- No Render API URL or Android signing key is configured. This workspace has no confirmed Android SDK, and the required Gradle distribution was previously blocked from downloading. No v0.4.2 APK or remote deployment is claimed.
-- The final source changes still require a clean Android build, backend CI, live HTTPS/API configuration, and real-device visual/alarm/device-owner checks.
+Verification:
+- [GitHub Actions run](https://github.com/Jmsbbd2009/smartstudy/actions/runs/42365397958): Ruff passed; PostgreSQL Alembic upgrade/check passed with no schema drift; **62 backend tests passed**.
+- Android `:domain:test testDebugUnitTest assembleDebug assembleDebugAndroidTest` completed successfully with JDK 17, SDK 35 and Gradle 8.11.1. Instrumentation APKs compiled; no emulator or physical-device test was run.
+- First CI run exposed an unresolved Android string reference and two outdated test expectations; these were corrected and the entire CI rerun passed.
+- [Published preview](https://github.com/Jmsbbd2009/smartstudy/releases/tag/v0.4.2-preview-b13b376), [APK](https://github.com/Jmsbbd2009/smartstudy/releases/download/v0.4.2-preview-b13b376/SmartStudy-0.4.2-test.apk), 59,209,011 bytes. SHA-256: `1d74db38335e4cbc9725206372b5f61c547de3b9de61c28364d73de1a57e9cb1`.
+
+Known release gaps:
+- APK is debug-signed, not a stable production-signing release. Installing over a previous separately signed APK may be rejected. Preserve existing data and obtain the original signing key before an in-place production update.
+- Render currently has database/session variables but no AI provider key or Telegram bot token configured. AI and Telegram OTP remain unavailable until those server-only secrets and the Telegram delivery mode are securely configured. No real messages were sent in this deployment.
+- Native Android PDF upload/lesson authoring and full staff administration remain incomplete; retained React code contains those authoring flows but no public website is deployed.
+- Free Render upload storage is temporary; durable private object storage remains required. Real-device Device Owner, alarm/camera/location behavior, accessibility and recovery qualification remain outstanding. No claim of a defect-free or production-qualified product.
 
 Updated: 2026-11-07, v0.4.1 book-specific quiz and page-read gate.
 

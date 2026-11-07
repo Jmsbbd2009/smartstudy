@@ -1,6 +1,14 @@
-# Build artifacts — v0.4.2 source
+# Build artifacts — Android 0.4.2 preview
 
-This source snapshot is versionCode 7/versionName 0.4.2. **The included APKs are historical v0.3.0 (versionCode 3) builds and do not include later source changes.** Rebuild with the documented Android SDK/Gradle toolchain before installing v0.4.2. The current workspace does not contain Gradle 8.11.1 or Android SDK 35; downloading Gradle failed because outbound network access is unavailable. No v0.4.2 compile or test is claimed.
+[Download APK](https://github.com/Jmsbbd2009/smartstudy/releases/download/v0.4.2-preview-b13b376/SmartStudy-0.4.2-test.apk) · [Release](https://github.com/Jmsbbd2009/smartstudy/releases/tag/v0.4.2-preview-b13b376) · [Successful CI](https://github.com/Jmsbbd2009/smartstudy/actions/runs/42365397958)
+
+Source commit: `b13b376d1b37322d1b6c969982b1d7b3f6cd85fa`. Android versionCode 7, versionName 0.4.2. Actual CI unit tests, debug APK and instrumentation APK builds passed; instrumentation was not executed on an emulator/device.
+
+APK size: **59,209,011 bytes**. SHA-256: `1d74db38335e4cbc9725206372b5f61c547de3b9de61c28364d73de1a57e9cb1`.
+
+This is an installable debug-signed preview using `https://studycontrol-api.onrender.com/api/v1/`. Its signing certificate may differ from older installed APKs. Do not uninstall an existing app just to force an update without preserving its data. Production update signing and physical-device qualification remain incomplete.
+
+## Historical artifacts
 
 The v0.3.0 APKs were previously built with versionCode 3/versionName 0.3.0, min SDK 26, target/compile 35, Gradle 8.11.1, full JDK 17 (Corretto), and Build Tools 35.0.0. Both v2 signatures were verified with SDK apksigner. No release signing, store publication or device execution is claimed. The universal debug APK includes bundled ML Kit and native libraries for several ABIs. Camera/GPS/OS enforcement are not qualified on physical hardware. No real API key or password is embedded in either historical APK.
 

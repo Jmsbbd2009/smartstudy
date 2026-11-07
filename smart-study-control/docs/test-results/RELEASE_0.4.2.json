@@ -1,0 +1,18 @@
+{
+  "version": "0.4.2",
+  "source_commit": "b13b376d1b37322d1b6c969982b1d7b3f6cd85fa",
+  "actions_run": 42365397958,
+  "backend_tests_passed": 62,
+  "ruff": "passed",
+  "alembic_upgrade_and_check": "passed",
+  "android_build": "passed",
+  "android_unit_tests": "passed",
+  "android_instrumentation": "compiled_not_executed",
+  "render": "Live",
+  "render_health": "ready",
+  "apk_url": "https://github.com/Jmsbbd2009/smartstudy/releases/download/v0.4.2-preview-b13b376/SmartStudy-0.4.2-test.apk",
+  "apk_size_bytes": 59209011,
+  "apk_sha256": "1d74db38335e4cbc9725206372b5f61c547de3b9de61c28364d73de1a57e9cb1",
+  "signing": "debug_preview",
+  "ai_and_telegram_keys_configured": false
+}

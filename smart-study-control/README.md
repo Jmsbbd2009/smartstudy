@@ -7,7 +7,7 @@ v0.4.1 adds a ready-to-review ten-question lesson for pages 1–5 of the supplie
 
 v0.2.0 added private PDF books, source-grounded visual lessons, adult-validated comprehension tests, reading progress, one-time learning rewards and guardian-controlled academic autopilot. Usage: [PDF and AI guide (Uzbek)](docs/BOOKS_AND_AI_UZ.md).
 
-Production-oriented reference implementation, not a certified or production-ready MDM product. See IMPLEMENTATION_PROGRESS.md for exact delivery and verification status. The included APKs are historical v0.3.0 builds; v0.4.2 has not been compiled in this environment and requires Android SDK/Gradle. There is no public website in the deployment; the Android app uses the FastAPI service. The PDF is not bundled, and native Android book upload/authoring is still a release gap. Start with `BOSHLASH_UZ.md` for Uzbek instructions.
+Production-oriented reference implementation, not a certified or production-ready MDM product. See IMPLEMENTATION_PROGRESS.md for exact delivery and verification status. The artifacts folder contains historical v0.3.0 builds. The new v0.4.2 preview was built and unit-tested in GitHub Actions; see docs/BUILD_ARTIFACTS.md for the actual release APK. There is no public website in the deployment; the Android app uses the FastAPI service. The PDF is not bundled, and native Android book upload/authoring is still a release gap. Start with `BOSHLASH_UZ.md` for Uzbek instructions.
 
 ## Quick start
 1. Run `python scripts/configure.py` to create a new `.env` with generated development secrets.

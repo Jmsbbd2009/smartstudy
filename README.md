@@ -9,3 +9,5 @@ There is no public website in the deployment configuration. Legacy React adminis
 Deployment root: `smart-study-control`. Backend: `infrastructure/docker/backend.Dockerfile`. Existing database and private environment values must be preserved across updates.
 
 See [setup](smart-study-control/README.md), [release limitations](smart-study-control/docs/BUILD_ARTIFACTS.md) and [device enrollment](smart-study-control/docs/DEVICE_OWNER_SETUP.md).
+
+[Download the 0.4.2 test APK](https://github.com/Jmsbbd2009/smartstudy/releases/download/v0.4.2-preview-b13b376/SmartStudy-0.4.2-test.apk) · [Release notes](https://github.com/Jmsbbd2009/smartstudy/releases/tag/v0.4.2-preview-b13b376)
