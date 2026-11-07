@@ -99,6 +99,11 @@ def test_teacher_can_see_only_student_started_session_in_own_class(people):
         f"/api/v1/location/children/{child}/consent",
         headers=teacher["headers"],
         json={"enabled": True, "max_minutes": 30},
+    ).status_code == 422
+    assert c.put(
+        f"/api/v1/location/children/{child}/consent",
+        headers=teacher["headers"],
+        json={"enabled": True, "guardian_consent": True, "max_minutes": 30},
     ).status_code == 200
     started = c.post(
         "/api/v1/location/shares",
@@ -124,7 +129,7 @@ def test_teacher_can_see_only_student_started_session_in_own_class(people):
     assert c.put(
         f"/api/v1/location/children/{child}/consent",
         headers=teacher["headers"],
-        json={"enabled": False, "max_minutes": 30},
+        json={"enabled": False, "guardian_consent": True, "max_minutes": 30},
     ).status_code == 200
     assert c.get(f"/api/v1/location/children/{child}/latest", headers=teacher["headers"]).json()[
         "active"

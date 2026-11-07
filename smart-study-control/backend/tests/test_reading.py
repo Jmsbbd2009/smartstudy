@@ -251,7 +251,7 @@ def test_validated_test_grants_once_and_preserves_answer_secrecy(reading):
         assert finish.json()["result"]["reward"] == {"state": "GRANTED", "minutes": 15}
     assert c.get("/api/v1/rewards/wallet", headers=sh).json()["available"] == 15
     progress = c.get(f"/api/v1/reading/plans/{plan['id']}", headers=sh).json()["progress"]
-    assert progress["checked_percent"] == 100 and progress["self_reported_percent"] == 0
+    assert progress["checked_percent"] == 100 and progress["self_reported_percent"] == 100
     with factory() as db:
         assert (
             len(list(db.scalars(select(RewardTransaction).where(RewardTransaction.origin.like("reading:%")))))

@@ -13,7 +13,7 @@ import kotlinx.serialization.json.*
 @Composable fun TelegramSignIn(vm:StudyViewModel,login:String) {
     val context=LocalContext.current
     var challenge by remember {mutableStateOf<JsonObject?>(null)};var code by remember {mutableStateOf("")}
-    Text(stringResource(R.string.telegram_login_help),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(stringResource(R.string.login_telegram_help),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
     Action(R.string.telegram_signin,login.isNotBlank()){vm.run {val result=vm.repository.api.post("auth/telegram/login/start",body("login" to login));challenge=result;context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(result.text("deep_link"))))}}
     challenge?.let {pending->
         Action(R.string.open_telegram){runCatching {context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(pending.text("deep_link"))))}}
