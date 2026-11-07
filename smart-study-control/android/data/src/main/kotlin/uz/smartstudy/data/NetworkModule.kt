@@ -21,7 +21,13 @@ object NetworkModule {
     @Provides @Singleton fun database(@ApplicationContext context:Context):StudyDatabase = Room.databaseBuilder(context,StudyDatabase::class.java,"study.db").addMigrations(MIGRATION_1_2).build()
     @Provides @Singleton fun api(vault:TokenVault,@ApiBaseUrl baseUrl:String):StudyApi {
         val json=Json { ignoreUnknownKeys=true;explicitNulls=false }
-        val bare=OkHttpClient.Builder().callTimeout(java.time.Duration.ofSeconds(90)).build()
+        // The hosted free API can take over 50 seconds to wake from idle.
+        val bare=OkHttpClient.Builder()
+            .connectTimeout(java.time.Duration.ofSeconds(15))
+            .readTimeout(java.time.Duration.ofSeconds(90))
+            .writeTimeout(java.time.Duration.ofSeconds(90))
+            .callTimeout(java.time.Duration.ofSeconds(120))
+            .build()
         val client=bare.newBuilder().addInterceptor { chain ->
             val builder=chain.request().newBuilder()
             vault.token()?.let { builder.header("Authorization","Bearer $it") }
