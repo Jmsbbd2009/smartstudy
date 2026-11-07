@@ -20,11 +20,14 @@
 - `admin-web/src/features/access/Access.tsx`
 - `admin-web/src/features/reading/AutomationPage.tsx`
 - `admin-web/src/features/reading/BooksPage.tsx`
+- `admin-web/src/features/reading/yozYomgiri.test.ts`
+- `admin-web/src/features/reading/yozYomgiri.ts`
 - `admin-web/src/i18n.ts`
 - `admin-web/src/main.tsx`
 - `admin-web/src/services/api.test.ts`
 - `admin-web/src/services/api.ts`
 - `admin-web/src/styles/index.css`
+- `admin-web/src/styles/premium-dark.css`
 - `admin-web/tailwind.config.js`
 - `admin-web/tests/reading-e2e.mjs`
 - `admin-web/tests/run_e2e.py`
@@ -121,6 +124,7 @@
 - `backend/app/schemas/reading.py`
 - `backend/app/schemas/responses.py`
 - `backend/app/security/auth.py`
+- `backend/app/security/identifiers.py`
 - `backend/app/security/rate_limit.py`
 - `backend/app/security/request_size.py`
 - `backend/app/security/scope.py`

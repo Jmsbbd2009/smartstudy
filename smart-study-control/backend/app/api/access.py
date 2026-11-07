@@ -35,6 +35,7 @@ from app.models.entities import (
 )
 from app.security.auth import current_user, require, tokens, digest, hasher, verify_password
 from app.security.rate_limit import auth_limit, limit
+from app.security.identifiers import normalize_login
 from app.schemas.responses import TokenOut
 from app.schemas.access import *
 from app.services.challenges import issue, lock_challenge, validate, failed, otp_hash
@@ -42,15 +43,21 @@ from app.integrations.telegram import process_update
 
 router = APIRouter(prefix="/api/v1", tags=["access"])
 STAFF = ("TEACHER", "SCHOOL_ADMIN", "SUPER_ADMIN")
+TELEGRAM_LOGIN_ROLES = ("STUDENT", *STAFF)
 
 
 def staff(user):
     require(user, *STAFF)
 
 
+def telegram_user(user):
+    require(user, *TELEGRAM_LOGIN_ROLES)
+
+
 def find_login(db, login):
-    normalized = "".join(login.lower().split())
-    return db.scalar(select(User).where(or_(User.email == login.lower().strip(), User.login == normalized)))
+    raw = login.strip().lower()
+    normalized = normalize_login(raw)
+    return db.scalar(select(User).where(or_(User.email == raw, User.login == normalized)))
 
 
 def event(db, user, action, resource):
@@ -59,10 +66,11 @@ def event(db, user, action, resource):
 
 def staff_output(db, user):
     profile = db.scalar(select(StaffProfile).where(StaffProfile.user_id == user.id))
+    email = None if user.email.endswith(".smart-study.invalid") else user.email
     return {
         "id": user.id,
         "login": user.login,
-        "email": user.email,
+        "email": email,
         "name": user.name,
         "role": user.role,
         "active": user.active,
@@ -124,8 +132,10 @@ def schools(user=Depends(current_user), db=Depends(get_db, scope="function")):
 def create_staff(body: StaffIn, user=Depends(current_user), db=Depends(get_db, scope="function")):
     require(user, "SUPER_ADMIN")
     limit("staff-create:" + user.id, 30, 3600)
-    if db.scalar(
-        select(User.id).where(or_(User.login == body.login.lower(), User.email == body.email.lower()))
+    login = normalize_login(body.login)
+    email = body.email.lower() if body.email else f"{uid()}@staff.smart-study.invalid"
+    if db.scalar(select(User.id).where(User.login == login)) or (
+        body.email and db.scalar(select(User.id).where(User.email == email))
     ):
         raise HTTPException(409, "Bunday login yoki email mavjud")
     school = db.get(School, body.school_id) if body.school_id else None
@@ -134,8 +144,8 @@ def create_staff(body: StaffIn, user=Depends(current_user), db=Depends(get_db, s
     if body.role == "SCHOOL_ADMIN" and (school or not body.school_name):
         raise HTTPException(422, "Yangi admin uchun maktab nomini kiriting")
     target = User(
-        login=body.login.lower(),
-        email=body.email.lower(),
+        login=login,
+        email=email,
         name=body.name,
         password_hash=hasher.hash(body.password),
         role=body.role,
@@ -194,7 +204,7 @@ def announce(body: Announcement, user=Depends(current_user), db=Depends(get_db, 
 
 @router.post("/auth/telegram/link/start")
 def link_start(body: PasswordProof, user=Depends(current_user), db=Depends(get_db, scope="function")):
-    staff(user)
+    telegram_user(user)
     limit("credential-enroll:" + user.id, 10, 3600)
     if not verify_password(body.password, user.password_hash):
         raise HTTPException(401, "Parol noto‘g‘ri")
@@ -218,7 +228,7 @@ def login_start(body: LoginName, db=Depends(get_db, scope="function")):
     identity = (
         db.scalar(select(TelegramIdentity).where(TelegramIdentity.user_id == user.id)) if user else None
     )
-    if not user or not user.active or user.role not in STAFF or not identity:
+    if not user or not user.active or user.role not in TELEGRAM_LOGIN_ROLES or not identity:
         raise HTTPException(401, "Telegram orqali kirish mavjud emas. Avval hisob va Telegramni bog‘lang.")
     limit("tg-login:" + user.id, 5, 300)
     row, state, verifier = issue(db, user, "TG_LOGIN")
@@ -241,7 +251,7 @@ def status(body: ChallengeProof, db=Depends(get_db, scope="function")):
 
 @router.post("/auth/telegram/link/finish")
 def link_finish(body: LinkProof, user=Depends(current_user), db=Depends(get_db, scope="function")):
-    staff(user)
+    telegram_user(user)
     row = lock_challenge(db, body.challenge_id)
     validate(row, body.verifier, "TG_LINK")
     if row.user_id != user.id or not verify_password(body.password, user.password_hash):
@@ -278,7 +288,7 @@ def login_finish(body: OtpProof, db=Depends(get_db, scope="function")):
     ):
         failed(db, row)
     user = db.get(User, row.user_id)
-    if not user.active or user.role not in STAFF:
+    if not user.active or user.role not in TELEGRAM_LOGIN_ROLES:
         raise HTTPException(401, "Hisob yopilgan")
     row.consumed = True
     event(db, user, "auth.telegram_login", user.id)
@@ -301,7 +311,7 @@ def webhook(
 
 @router.get("/auth/telegram/me")
 def telegram_me(user=Depends(current_user), db=Depends(get_db, scope="function")):
-    staff(user)
+    telegram_user(user)
     row = db.scalar(select(TelegramIdentity).where(TelegramIdentity.user_id == user.id))
     return {"linked": bool(row), "notifications_enabled": bool(row and row.notifications_enabled)}
 

@@ -56,7 +56,7 @@ describe.skipIf(process.env.LIVE_E2E !== "1")(
         fireEvent.click(screen.getByRole("button", { name: "Chiqish" }));
         await screen.findByRole("heading", { name: "Xush kelibsiz" });
       }
-      await login("50 0773209", password);
+      await login("555 1234567", password);
       await screen.findByRole("navigation");
       checks.push("Normalized numeric super admin login");
       fireEvent.click(screen.getByRole("button", { name: "Xodimlar" }));

@@ -1,16 +1,54 @@
-name: Build Android APK
+name: Verify and build Android APK
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       api_url:
-        description: 'HTTPS API URL ending in /api/v1/'
+        description: HTTPS API URL ending in /api/v1/
         required: true
-      web_url:
-        description: 'HTTPS admin web URL'
-        required: true
+        default: https://studycontrol-api.onrender.com/api/v1/
 permissions:
   contents: read
+concurrency:
+  group: smartstudy-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: smart-study-control
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: study
+          POSTGRES_PASSWORD: ephemeral-ci-test-password
+          POSTGRES_DB: study_test
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U study -d study_test"
+          --health-interval 5s --health-timeout 5s --health-retries 15
+    env:
+      JWT_SECRET: ci-only-secret-not-for-deployment-0123456789abcdef
+      DATABASE_URL: postgresql+psycopg://study:ephemeral-ci-test-password@localhost:5432/study_test
+      TEST_DATABASE_URL: postgresql+psycopg://study:ephemeral-ci-test-password@localhost:5432/study_test
+      APP_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: smart-study-control/backend/requirements*.txt
+      - run: pip install -r backend/requirements-dev.txt
+      - run: sudo apt-get update && sudo apt-get install -y poppler-utils tesseract-ocr tesseract-ocr-eng
+      - run: ruff check backend
+      - run: alembic upgrade head && alembic check
+        working-directory: smart-study-control/backend
+      - run: pytest -q
+        working-directory: smart-study-control/backend
   apk:
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -18,23 +56,21 @@ jobs:
       run:
         working-directory: smart-study-control/android
     env:
-      STUDY_API_URL: ${{ inputs.api_url }}
-      STUDY_WEB_URL: ${{ inputs.web_url }}
+      STUDY_API_URL: ${{ inputs.api_url || 'https://studycontrol-api.onrender.com/api/v1/' }}
     steps:
       - uses: actions/checkout@v4
-      - name: Validate public URLs
+      - name: Validate public API URL
         working-directory: .
         run: |
           python3 - <<'PY'
           import os
           from urllib.parse import urlsplit
-          for key in ("STUDY_API_URL", "STUDY_WEB_URL"):
-              value = os.environ[key]
-              parsed = urlsplit(value)
-              assert parsed.scheme == "https" and parsed.hostname, "HTTPS URL required"
-              assert not parsed.username and not parsed.password and not parsed.query and not parsed.fragment
-              assert all(c not in value for c in ('"', '\\', '\n', '\r', '$')), "Invalid URL"
-          assert os.environ["STUDY_API_URL"].endswith("/api/v1/"), "API must end in /api/v1/"
+          value = os.environ['STUDY_API_URL']
+          parsed = urlsplit(value)
+          assert parsed.scheme == 'https' and parsed.hostname, 'HTTPS URL required'
+          assert not parsed.username and not parsed.password and not parsed.query and not parsed.fragment
+          assert all(c not in value for c in ('"', '\\', '\n', '\r', '$')), 'Invalid URL'
+          assert value.endswith('/api/v1/'), 'API must end in /api/v1/'
           PY
       - uses: actions/setup-java@v4
         with:
@@ -48,10 +84,43 @@ jobs:
       - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
       - run: chmod +x gradlew
       - name: Test and build installable test APK
-        run: ./gradlew :domain:test testDebugUnitTest assembleDebug "-PDEBUG_API_URL=$STUDY_API_URL" "-PDEBUG_ADMIN_WEB_URL=$STUDY_WEB_URL"
+        run: ./gradlew :domain:test testDebugUnitTest assembleDebug assembleDebugAndroidTest "-PDEBUG_API_URL=$STUDY_API_URL"
+      - name: Name APK and checksum
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/SmartStudy-0.4.2-test.apk
+          cd app/build/outputs/apk/debug
+          sha256sum SmartStudy-0.4.2-test.apk > SmartStudy-0.4.2-test.apk.sha256
       - uses: actions/upload-artifact@v4
         with:
-          name: StudyControl-test-apk
-          path: smart-study-control/android/app/build/outputs/apk/debug/*.apk
+          name: SmartStudy-0.4.2-test-apk
+          path: |
+            smart-study-control/android/app/build/outputs/apk/debug/SmartStudy-0.4.2-test.apk
+            smart-study-control/android/app/build/outputs/apk/debug/SmartStudy-0.4.2-test.apk.sha256
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
+  publish-preview:
+    needs: [backend, apk]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: SmartStudy-0.4.2-test-apk
+          path: apk
+      - name: Publish tested preview APK
+        run: |
+          cat > notes.md <<'NOTES'
+          Android 0.4.2 test build with animated SMART STUDY branding, reading illustration, book-first dashboard and live HTTPS API connection.
+
+          This is a debug-signed preview. Device Owner, alarm/camera/location hardware behavior still requires real-device qualification. A production update requires a stable release signing key. Do not uninstall an existing app without preserving its data.
+          NOTES
+          if gh release view v0.4.2-preview >/dev/null 2>&1; then
+            gh release upload v0.4.2-preview apk/* --clobber
+          else
+            gh release create v0.4.2-preview apk/* --target "$GITHUB_SHA" --title 'Smart Study 0.4.2 preview' --notes-file notes.md --prerelease
+          fi

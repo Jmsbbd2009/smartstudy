@@ -142,6 +142,13 @@ def reading(people, tmp_path, monkeypatch):
 
 
 def start(c, p, plan, lesson, key="reading-attempt-test-0001"):
+    for page_number in range(lesson["start_page"], lesson["end_page"] + 1):
+        marked = c.post(
+            f"/api/v1/reading/plans/{plan['id']}/progress",
+            headers=p["student0"]["headers"],
+            json={"page_number": page_number, "reported_seconds": 0},
+        )
+        assert marked.status_code == 200, marked.text
     result = c.post(
         f"/api/v1/reading/plans/{plan['id']}/lessons/{lesson['id']}/attempts",
         headers={**p["student0"]["headers"], "Idempotency-Key": key},
@@ -149,6 +156,42 @@ def start(c, p, plan, lesson, key="reading-attempt-test-0001"):
     )
     assert result.status_code == 200, result.text
     return result.json()
+
+
+def test_super_admin_can_upload_and_own_a_book(reading):
+    c, _, p, _, _, _ = reading
+    response = c.post(
+        "/api/v1/books",
+        headers=p["super_admin5"]["headers"],
+        data={"title": "Admin curriculum"},
+        files={"file": ("book.pdf", make_pdf(), "application/pdf")},
+    )
+    assert response.status_code == 201, response.text
+    book = response.json()
+    assert book["title"] == "Admin curriculum"
+    assert book["owner_id"] == p["super_admin5"]["id"]
+
+
+def test_test_requires_student_to_mark_every_lesson_page_first(reading):
+    c, _, p, _, lesson, plan = reading
+    path = f"/api/v1/reading/plans/{plan['id']}/lessons/{lesson['id']}/attempts"
+    headers = {**p["student0"]["headers"], "Idempotency-Key": "reading-pages-required-0001"}
+    rejected = c.post(path, headers=headers, json={})
+    assert rejected.status_code == 409
+    assert "every page" in rejected.json()["error"]["message"]
+    for page_number in (1, 2):
+        assert c.post(
+            f"/api/v1/reading/plans/{plan['id']}/progress",
+            headers=p["student0"]["headers"],
+            json={"page_number": page_number, "reported_seconds": 120},
+        ).status_code == 200
+    assert c.post(path, headers=headers, json={}).status_code == 409
+    assert c.post(
+        f"/api/v1/reading/plans/{plan['id']}/progress",
+        headers=p["student0"]["headers"],
+        json={"page_number": 3, "reported_seconds": 120},
+    ).status_code == 200
+    assert c.post(path, headers=headers, json={}).status_code == 200
 
 
 def correct_answers(attempt):

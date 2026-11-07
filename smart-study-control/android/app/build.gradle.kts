@@ -9,16 +9,15 @@ android {
     compileSdk = 35
     defaultConfig {
         applicationId = "uz.smartstudy.control"
-        minSdk = 26; targetSdk = 35; versionCode = 4; versionName = "0.3.1"
+        minSdk = 26; targetSdk = 35; versionCode = 7; versionName = "0.4.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true; buildConfig = true }
     buildTypes {
-        debug { buildConfigField("String", "API_URL", "\"${debugApi.get()}\""); manifestPlaceholders["cleartext"] = "true"; buildConfigField("String", "ADMIN_WEB_URL", "\"${providers.gradleProperty("DEBUG_ADMIN_WEB_URL").orElse("http://10.0.2.2:5173/").get()}\"") }
+        debug { buildConfigField("String", "API_URL", "\"${debugApi.get()}\""); manifestPlaceholders["cleartext"] = "true" }
         release {
             buildConfigField("String", "API_URL", "\"${releaseApi.get()}\"")
             manifestPlaceholders["cleartext"] = "false"
-            buildConfigField("String", "ADMIN_WEB_URL", "\"${providers.gradleProperty("ADMIN_WEB_URL").orElse("https://configure-admin.invalid/").get()}\"")
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }

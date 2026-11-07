@@ -3,7 +3,7 @@ Status: accepted, 2026-11-05.
 
 Staff accounts are created through super-admin-only APIs, with school-scoped staff views and forced temporary-password renewal. Epoch-bound JWTs and refresh revocation invalidate old credentials after password/state changes. Telegram identity linking requires an existing staff session and password proof; a separate browser-held verifier prevents a forwarded bot start link from authenticating its recipient. OTP hashes are HMAC-based, expire in five minutes, have a persisted five-attempt cap and are atomically consumed. Webhooks require a secret header and updates are deduplicated. Polling never deletes an existing webhook.
 
-Face sign-in uses platform WebAuthn user verification rather than stored camera faces. The server verifies RP/origin/challenge/UV/signature/counter and credential ownership. Native staff OTP is implemented; passkey administration/sign-in uses the web panel. Modality is controlled by the OS and is never misrepresented as a guaranteed face match.
+Native staff Telegram OTP is implemented. The optional WebAuthn backend remains in the source, but no public web panel is deployed in this release; device-biometric/passkey management from Android remains future work. Modality is controlled by the OS and is never misrepresented as guaranteed face identification.
 
 Photo alarm tasks run on device with a bundled image labeler and an explicit available-object set. Camera results are ephemeral, confidence-gated and not identity/anti-tamper evidence. Accessible dismissal and a bounded sound duration remain essential.
 

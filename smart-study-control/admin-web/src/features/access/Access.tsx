@@ -129,10 +129,7 @@ export function TelegramLogin({
   }
   return (
     <section className="access-options">
-      <p>
-        Xodimlar: Telegram kodi yoki qurilma yuz/barmoq/PIN tasdig‘i orqali
-        kiring.
-      </p>
+      <p>Telefon yoki loginni kiriting, Telegram botidan bir martalik kod oling.</p>
       <div className="action-row">
         <Button
           type="button"
@@ -298,11 +295,11 @@ export function SecurityAccess({ user }: { user: User }) {
   }
   return (
     <section className="card access-settings">
-      <h2>Telegram va yuz / qurilma kaliti</h2>
+      <h2>Telegram va qurilma kaliti</h2>
       <p>
-        Biometrik tekshiruvni telefon yoki kompyuter bajaradi. Yuz rasmi
-        serverga yuborilmaydi; qurilma imkoniyatiga qarab yuz, barmoq yoki ekran
-        kodi so‘raladi.
+        Bu serverdagi yuzni tanish emas. Passkey tasdig‘ini qurilmaning o‘zi
+        bajaradi; u biometrika yoki qurilma PIN-kodini so‘rashi mumkin. Yuz
+        rasmi serverga yuborilmaydi.
       </p>
       {error && (
         <p role="alert" className="error">
@@ -424,7 +421,7 @@ export function StaffPage({ user }: { user: User }) {
       email: "",
       login: "",
       password: "",
-      role: "SCHOOL_ADMIN",
+      role: "TEACHER",
       school_name: "",
       school_id: "",
     }),
@@ -469,6 +466,7 @@ export function StaffPage({ user }: { user: User }) {
               run(async () => {
                 await api("staff", "POST", {
                   ...form,
+                  email: form.email || null,
                   school_id: form.role === "TEACHER" ? form.school_id : null,
                   school_name:
                     form.role === "SCHOOL_ADMIN" ? form.school_name : null,
@@ -483,16 +481,14 @@ export function StaffPage({ user }: { user: User }) {
               });
             }}
           >
-            {(["name", "email", "login", "password"] as const).map((key, i) => (
+            {(["name", "login", "password"] as const).map((key, i) => (
               <label className="field" key={key}>
-                {["Ism", "Email", "Login", "Vaqtinchalik parol"][i]}
+                {["Ism", "Telefon yoki login", "Vaqtinchalik parol"][i]}
                 <input
                   type={
                     key === "password"
                       ? "password"
-                      : key === "email"
-                        ? "email"
-                        : "text"
+                      : "text"
                   }
                   minLength={key === "password" ? 12 : 1}
                   autoComplete={key === "password" ? "new-password" : "off"}
@@ -508,7 +504,6 @@ export function StaffPage({ user }: { user: User }) {
                 value={form.role}
                 onChange={(e) => change("role", e.target.value)}
               >
-                <option value="SCHOOL_ADMIN">Maktab admini</option>
                 <option value="TEACHER">O‘qituvchi</option>
               </select>
             </label>
@@ -660,6 +655,62 @@ export function NotificationCenter() {
     </section>
   );
 }
+export function TeacherLocation() {
+  const [classId, setClassId] = useState(""),
+    [child, setChild] = useState(""),
+    [error, setError] = useState("");
+  const client = useQueryClient();
+  const classes = useQuery({
+    queryKey: ["classrooms"],
+    queryFn: () => api<Row[]>("classrooms"),
+  });
+  const roster = useQuery({
+    queryKey: ["location-roster", classId],
+    queryFn: () => api<Row[]>(`classrooms/${classId}/students`),
+    enabled: !!classId,
+  });
+  const policy = useQuery({
+    queryKey: ["location-policy", child],
+    queryFn: () => api(`location/children/${child}/consent`),
+    enabled: !!child,
+  });
+  const location = useQuery({
+    queryKey: ["teacher-location", child],
+    queryFn: () => api(`location/children/${child}/latest`),
+    enabled: !!child,
+    refetchInterval: 5000,
+  });
+  return (
+    <section className="card">
+      <h1>O‘quvchi joylashuvi</h1>
+      <p>Faqat o‘zingizning sinfingizdagi o‘quvchilar. O‘quvchi ulashishni ilovada o‘zi boshlaydi va istalgan payt to‘xtatadi. Ulanish vaqt bilan cheklangan; kuzatuv fonda yashirin ishlamaydi.</p>
+      <label className="field">
+        Sinf
+        <select value={classId} onChange={e => { setClassId(e.target.value); setChild(""); }}>
+          <option value="">Sinfni tanlang</option>
+          {classes.data?.map(c => <option value={c.id} key={c.id}>{c.name}</option>)}
+        </select>
+      </label>
+      <label className="field">
+        O‘quvchi
+        <select value={child} onChange={e => setChild(e.target.value)} disabled={!classId}>
+          <option value="">O‘quvchini tanlang</option>
+          {roster.data?.map(s => <option value={s.id} key={s.id}>{s.name}</option>)}
+        </select>
+      </label>
+      {error && <p role="alert" className="error">{error}</p>}
+      {child && <>
+        <p>{policy.data?.enabled ? "Sinf doirasidagi ruxsat yoqilgan" : "Sinf doirasidagi ruxsat o‘chiq"}</p>
+        <Button onClick={async () => { setError(""); try { await api(`location/children/${child}/consent`, "PUT", { enabled: !policy.data?.enabled, max_minutes: 60 }); await client.invalidateQueries(); } catch (e) { setError((e as Error).message); } }}>
+          {policy.data?.enabled ? "Ulashish ruxsatini o‘chirish" : "Sessiya uchun ruxsat berish"}
+        </Button>
+        <p>{location.data?.active ? (location.data.stale ? "O‘quvchi ulashishni yoqqan, signal eskirgan" : "O‘quvchi ulashishni yoqqan") : "Faol ulashish yo‘q"}</p>
+        {location.data?.active && location.data.latitude != null && !location.data.stale && <><p>{location.data.latitude}, {location.data.longitude} · ±{Math.round(location.data.accuracy_m)} m</p><p>Yangilandi: {new Date(location.data.received_at).toLocaleTimeString()}</p><a target="_blank" rel="noopener noreferrer" href={`https://www.openstreetmap.org/?mlat=${location.data.latitude}&mlon=${location.data.longitude}#map=16/${location.data.latitude}/${location.data.longitude}`}>Xaritada ochish →</a></>}
+      </>}
+    </section>
+  );
+}
+
 export function FamilyLocation({ children }: { children: Row[] }) {
   const [child, setChild] = useState(""),
     [error, setError] = useState(""),
@@ -681,8 +732,8 @@ export function FamilyLocation({ children }: { children: Row[] }) {
       <h1>Oilaviy joylashuv</h1>
       <p>
         Farzand ilovada ulashishni o‘zi boshlaydi. Doimiy ko‘rinadigan
-        bildirishnoma va to‘xtatish tugmasi bor. O‘qituvchi va platforma admini
-        koordinatalarni ko‘rmaydi.
+        bildirishnoma va to‘xtatish tugmasi bor. Koordinatalarni faqat bog‘langan
+        vasiy va o‘quvchining amaldagi sinf o‘qituvchisi ko‘ra oladi.
       </p>
       <label className="field">
         Farzand

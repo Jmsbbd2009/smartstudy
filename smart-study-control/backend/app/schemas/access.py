@@ -10,7 +10,7 @@ class PasswordChange(Strict):
 
 class StaffIn(Strict):
     login: str = Field(min_length=3, max_length=80, pattern=r"^[A-Za-z0-9_.+@-]+$")
-    email: str = Field(max_length=254, pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+    email: str | None = Field(default=None, max_length=254, pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
     name: str = Field(min_length=1, max_length=100)
     password: str = Field(min_length=12, max_length=128)
     role: Literal["TEACHER", "SCHOOL_ADMIN"]

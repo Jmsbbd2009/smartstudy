@@ -13,7 +13,7 @@ import kotlinx.serialization.json.*
 @Composable fun TelegramSignIn(vm:StudyViewModel,login:String) {
     val context=LocalContext.current
     var challenge by remember {mutableStateOf<JsonObject?>(null)};var code by remember {mutableStateOf("")}
-    Text(stringResource(R.string.telegram_staff_help))
+    Text(stringResource(R.string.telegram_login_help),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
     Action(R.string.telegram_signin,login.isNotBlank()){vm.run {val result=vm.repository.api.post("auth/telegram/login/start",body("login" to login));challenge=result;context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(result.text("deep_link"))))}}
     challenge?.let {pending->
         Action(R.string.open_telegram){runCatching {context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(pending.text("deep_link"))))}}
@@ -23,7 +23,6 @@ import kotlinx.serialization.json.*
             vm.acceptSession(response)
         }}
     }
-    TextButton(onClick={runCatching {context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(BuildConfig.ADMIN_WEB_URL)))}}){Text(stringResource(R.string.open_staff_panel))}
 }
 @Composable fun RenewPasswordScreen(vm:StudyViewModel) {
     var old by remember {mutableStateOf("")};var fresh by remember {mutableStateOf("")}
@@ -40,7 +39,7 @@ import kotlinx.serialization.json.*
 @Composable fun StaffSecurityScreen(vm:StudyViewModel) {
     val context=LocalContext.current
     var password by remember {mutableStateOf("")};var challenge by remember {mutableStateOf<JsonObject?>(null)}
-    Page(R.string.staff_security) {
+    Page(R.string.account_security) {
         Text(stringResource(R.string.staff_security_help))
         OutlinedTextField(password,{password=it},label={Text(stringResource(R.string.password))},visualTransformation=PasswordVisualTransformation())
         Action(R.string.telegram_link,password.isNotBlank()){vm.run {val result=vm.repository.api.post("auth/telegram/link/start",body("password" to password));challenge=result;context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(result.text("deep_link"))))}}
@@ -48,6 +47,5 @@ import kotlinx.serialization.json.*
             Action(R.string.open_telegram){runCatching {context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(pending.text("deep_link"))))}}
             Action(R.string.telegram_link_confirm){vm.run {vm.repository.api.post("auth/telegram/link/finish",buildJsonObject {put("challenge_id",pending.text("challenge_id"));put("verifier",pending.text("verifier"));put("password",password)});challenge=null}}
         }
-        Action(R.string.open_staff_panel){runCatching {context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(BuildConfig.ADMIN_WEB_URL)))}}
     }
 }

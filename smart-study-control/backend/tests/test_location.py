@@ -82,3 +82,50 @@ def test_location_expiry_revocation_and_multiple_guardians(people):
     assert not c.get(f"/api/v1/location/children/{child}/latest", headers=s).json()["active"]
     with f() as db:
         assert db.get(LocationShare, ident).status == "REVOKED"
+
+
+def test_teacher_can_see_only_student_started_session_in_own_class(people):
+    c, f, p = people
+    child = p["student0"]["id"]
+    teacher = p["teacher3"]
+    with f.begin() as db:
+        from app.models.entities import Classroom, ClassroomMember
+
+        room = Classroom(name="Sinf 7A", teacher_id=teacher["id"])
+        db.add(room)
+        db.flush()
+        db.add(ClassroomMember(classroom_id=room.id, student_id=child))
+    assert c.put(
+        f"/api/v1/location/children/{child}/consent",
+        headers=teacher["headers"],
+        json={"enabled": True, "max_minutes": 30},
+    ).status_code == 200
+    started = c.post(
+        "/api/v1/location/shares",
+        headers=p["student0"]["headers"],
+        json={"minutes": 20, "sharing_consent": True},
+    )
+    assert started.status_code == 201, started.text
+    ident = started.json()["id"]
+    assert c.post(
+        f"/api/v1/location/shares/{ident}/point",
+        headers=p["student0"]["headers"],
+        json={"latitude": 41.31, "longitude": 69.28, "accuracy_m": 24},
+    ).status_code == 200
+    latest = c.get(f"/api/v1/location/children/{child}/latest", headers=teacher["headers"])
+    assert latest.status_code == 200
+    assert latest.json()["latitude"] == 41.31 and latest.json()["active"]
+    assert c.get(
+        f"/api/v1/location/children/{child}/latest", headers=p["teacher4"]["headers"]
+    ).status_code == 403
+    assert c.get(
+        f"/api/v1/location/children/{child}/latest", headers=p["super_admin5"]["headers"]
+    ).status_code == 403
+    assert c.put(
+        f"/api/v1/location/children/{child}/consent",
+        headers=teacher["headers"],
+        json={"enabled": False, "max_minutes": 30},
+    ).status_code == 200
+    assert c.get(f"/api/v1/location/children/{child}/latest", headers=teacher["headers"]).json()[
+        "active"
+    ] is False

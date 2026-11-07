@@ -40,19 +40,3 @@ services:
         sync: false
       - key: UPLOAD_DIR
         value: /data/uploads
-  - type: web
-    name: studycontrol-web
-    runtime: static
-    rootDir: smart-study-control/admin-web
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist
-    autoDeploy: false
-    envVars:
-      - key: NODE_VERSION
-        value: 22.22.0
-      - key: VITE_API_URL
-        sync: false
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html

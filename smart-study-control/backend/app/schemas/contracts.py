@@ -9,10 +9,19 @@ class Strict(BaseModel):
 
 
 class Register(Strict):
-    email: str = Field(min_length=5, max_length=254, pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+    email: str | None = Field(default=None, min_length=5, max_length=254, pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+    phone: str | None = Field(default=None, min_length=7, max_length=24, pattern=r"^\+?[0-9 ()-]+$")
     password: str = Field(min_length=12, max_length=128)
     name: str = Field(min_length=1, max_length=100)
     role: Literal["STUDENT", "PARENT"]
+
+    @model_validator(mode="after")
+    def has_login_method(self):
+        if not self.phone and not self.email:
+            raise ValueError("phone or email is required")
+        if self.role == "PARENT" and not self.email:
+            raise ValueError("parent accounts require an email")
+        return self
 
 
 class Login(Strict):

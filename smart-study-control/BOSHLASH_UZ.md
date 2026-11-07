@@ -37,7 +37,7 @@ Oldingi v0.1 bazasi bo‘lsa backendni yangilashdan avval backup oling, so‘ng 
 
 ## v0.3: super admin, Telegram, yuz orqali kirish, foto budilnik va joylashuv
 
-Yangi qo‘llanma: `docs/ACCESS_ALARM_LOCATION_UZ.md`. Super admin login `500773209` (bo‘shliqli ko‘rinishi ham ishlaydi); birinchi parol yangilanishi majburiy. Admin va o‘qituvchini **Xodimlar** bo‘limida faqat super admin yaratadi. Hisobni bog‘lagach Telegramga to‘g‘ridan-to‘g‘ri o‘tish/OTP ishlaydi; passkey uchun mos HTTPS origin kerak. Native Androidda Telegram kirishi, web panelida esa passkey yuz/barmoq/PIN tasdig‘i bor.
+Yangi qo‘llanma: `docs/ACCESS_ALARM_LOCATION_UZ.md`. Super admin loginini faqat serverdagi `BOOTSTRAP_SUPERADMIN_LOGIN` orqali sozlang; birinchi kirishda vaqtinchalik parolni almashtirish majburiy. Admin va o‘qituvchini vakolatli super admin yaratadi. Native Androidda xodimlar Telegram OTP orqali kiradi. Bu relizda alohida ommaviy website yo‘q.
 
 Android budilnikda uyda bor xavfsiz buyumlarni tanlang: tasodifiy buyumni kamera bilan rasmga olish va mahalliy model tekshiruvi qo‘shildi. Joylashuv o‘quvchi o‘zi boshlaganda, ota-ona roziligi va ko‘rinadigan Stop bildirishnomasi bilan vaqtincha yuboriladi.
 

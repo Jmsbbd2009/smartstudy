@@ -11,6 +11,7 @@ from app.schemas.responses import *
 from app.security.auth import current_user, require, hasher, verify_password, tokens, digest
 from app.security.scope import guardian, academic, assignment_access, device_access
 from app.security.rate_limit import auth_limit, limit
+from app.security.identifiers import normalize_login
 from app.services.rewards import credit, revoke, reserve, refund, locked_wallet, settle_stale
 from app.services.policy import decision
 from app.core.config import settings
@@ -56,10 +57,13 @@ def latest_policy(db, device):
 
 @router.post("/auth/register", response_model=TokenOut, status_code=201, dependencies=[Depends(auth_limit)])
 def register(body: Register, db=Depends(get_db, scope="function")):
-    email = body.email.lower()
-    if db.scalar(select(User.id).where(User.email == email)):
-        raise HTTPException(409, "Email already registered")
-    user = User(email=email, name=body.name, role=body.role, password_hash=hasher.hash(body.password))
+    login = normalize_login(body.phone) if body.phone else None
+    email = body.email.lower() if body.email else f"{uid()}@students.smart-study.invalid"
+    if db.scalar(select(User.id).where(User.email == email)) or (
+        login and db.scalar(select(User.id).where(User.login == login))
+    ):
+        raise HTTPException(409, "This phone or email is already registered")
+    user = User(email=email, login=login, name=body.name, role=body.role, password_hash=hasher.hash(body.password))
     db.add(user)
     db.flush()
     role = db.scalar(select(Role).where(Role.name == body.role))
@@ -73,9 +77,11 @@ def register(body: Register, db=Depends(get_db, scope="function")):
 
 @router.post("/auth/login", response_model=TokenOut, dependencies=[Depends(auth_limit)])
 def login(body: Login, db=Depends(get_db, scope="function")):
+    identifier = body.email.strip().lower()
+    normalized = normalize_login(identifier)
     user = db.scalar(
         select(User).where(
-            or_(User.email == body.email.lower(), User.login == "".join(body.email.lower().split()))
+            or_(User.email == identifier, User.login == normalized)
         )
     )
     # Always perform password work, including unknown accounts.

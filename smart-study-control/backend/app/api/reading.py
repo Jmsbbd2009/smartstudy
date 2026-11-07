@@ -81,7 +81,7 @@ def upload_book(
     user=Depends(current_user),
     db=Depends(get_db, scope="function"),
 ):
-    require(user, "PARENT", "TEACHER")
+    require(user, "PARENT", "TEACHER", "SUPER_ADMIN")
     if not title.strip():
         raise HTTPException(422, "Kitob nomini kiriting")
     limit("book-upload:" + user.id, 10, 3600)

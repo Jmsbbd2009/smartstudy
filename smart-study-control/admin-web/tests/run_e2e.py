@@ -79,7 +79,7 @@ with SessionLocal.begin() as db:
     for role,name in [("PARENT","Test Parent"),("STUDENT","Test Child"),("TEACHER","Test Teacher"),("SUPER_ADMIN","Test Super")]:
         u=User(email=role.lower()+".e2e@example.test",name=name,role=role,password_hash=hasher.hash(os.environ["TEST_ACCOUNT_PASSWORD"]));db.add(u);db.flush();users.append(u)
     parent,child,teacher=users[:3]
-    users[3].login="500773209"
+    users[3].login="5551234567"
     db.add(Wallet(student_id=child.id));db.add(ParentLink(parent_id=parent.id,child_id=child.id));db.add(Consent(actor_id=parent.id,child_id=child.id,purpose="disposable_e2e_test",granted=True))
 """
     subprocess.run([sys.executable, "-c", seed], cwd=BACKEND, env=env, check=True)

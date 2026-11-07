@@ -18,6 +18,7 @@ import {
   type User,
 } from "../../services/api";
 import { Button } from "../../components/ui/button";
+import { YOZ_YOMGIRI_PAGES_1_5 } from "./yozYomgiri";
 const input = (
   label: string,
   value: string | number,
@@ -242,6 +243,7 @@ export function BooksPage({ user, children }: { user: User; children: Row[] }) {
   const [editing, setEditing] = useState(false);
   const [page, setPage] = useState(1);
   const [attempt, setAttempt] = useState<Row | null>(null);
+  const [presetContent, setPresetContent] = useState<Row | null>(null);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [selectedChild, setChild] = useState("");
   const [classId, setClass] = useState("");
@@ -322,6 +324,7 @@ export function BooksPage({ user, children }: { user: User; children: Row[] }) {
     setPlan(selectedPlan?.id || "");
     setLesson("");
     setAttempt(null);
+    setPresetContent(null);
     setEditing(false);
     setPage(selectedPlan?.start_page || 1);
     setStart(selectedPlan?.start_page || 1);
@@ -550,6 +553,19 @@ export function BooksPage({ user, children }: { user: User; children: Row[] }) {
                   >
                     Qo‘lda dars tuzish
                   </Button>
+                  {start === 1 && end === 5 && (
+                    <Button
+                      variant="outline"
+                      disabled={busy}
+                      onClick={() => {
+                        setLesson("");
+                        setPresetContent(YOZ_YOMGIRI_PAGES_1_5);
+                        setEditing(true);
+                      }}
+                    >
+                      1–5-sahifalar uchun tayyor test
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     disabled={busy}
@@ -571,12 +587,19 @@ export function BooksPage({ user, children }: { user: User; children: Row[] }) {
                   kaliti ulanmagan bo‘lsa xato ochiq ko‘rsatiladi. Javoblarni
                   tekshirmasdan dars e’lon qilinmaydi.
                 </p>
+                {presetContent && (
+                  <p className="reading-note">
+                    Tayyor test qoralama sifatida ochildi. PDF sahifalariga
+                    iqtiboslar tekshiriladi; javob kalitini ko‘rib chiqib,
+                    shundan keyingina e’lon qiling.
+                  </p>
+                )}
               </>
             )}
           </Panel>
           {owner && editing && (
             <LessonEditor
-              initial={lesson.data?.can_edit ? lesson.data.content : null}
+              initial={lesson.data?.can_edit ? lesson.data.content : presetContent}
               start={start}
               end={end}
               busy={busy}

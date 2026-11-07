@@ -52,6 +52,7 @@ import {
   StaffPage,
   NotificationCenter,
   FamilyLocation,
+  TeacherLocation,
   Integrations,
 } from "../features/access/Access";
 
@@ -157,7 +158,7 @@ export function App() {
           ["devices", t.devices, Monitor],
         ]
       : []),
-    ...(teacher ? [["classes", t.classes, GraduationCap]] : []),
+    ...(teacher ? [["classes", t.classes, GraduationCap], ["location", "O‘quvchi joylashuvi", Monitor]] : []),
     ...(!operator ? [["reports", t.reports, ChartNoAxesCombined]] : []),
     ...(operator ? [["staff", "Xodimlar", Users]] : []),
     ...(parent ? [["location", "Oilaviy joylashuv", Monitor]] : []),
@@ -380,6 +381,7 @@ export function App() {
           {page === "location" && parent && (
             <FamilyLocation children={children.data || []} />
           )}
+          {page === "location" && teacher && <TeacherLocation />}
           {page === "books" && (
             <BooksPage user={session.user} children={children.data || []} />
           )}
@@ -485,37 +487,39 @@ function Login({
       >
         <span className="eyebrow">BOSHQARUV MARKAZI</span>
         <h2>Xush kelibsiz</h2>
-        <p>Ota-ona yoki o‘qituvchi hisobingiz bilan kiring.</p>
-        <Field label="Email">
+        <p>Telefon yoki loginingizni kiriting. Xodimlar Telegram kodi bilan kira oladi.</p>
+        <Field label="Telefon raqam yoki login">
           <input
             autoComplete="username"
             type="text"
-            placeholder="Email yoki login"
+            placeholder="+998 90 123 45 67"
             {...register("email")}
           />
-          {errors.email && <small>Email yoki login kiriting</small>}
+          {errors.email && <small>Telefon raqam yoki login kiriting</small>}
         </Field>
-        <Field label="Parol">
-          <input
-            autoComplete="current-password"
-            type="password"
-            {...register("password")}
-          />
-          {errors.password && <small>Parolni kiriting</small>}
-        </Field>
+        <TelegramLogin login={watch("email") || ""} onError={onError} />
         {error && (
           <p role="alert" className="error">
             {error}
           </p>
         )}
-        <Button disabled={isSubmitting} type="submit">
-          {isSubmitting ? "Kutilmoqda…" : "Kirish"}
-          <ArrowUpRight size={18} />
-        </Button>
-        <TelegramLogin login={watch("email") || ""} onError={onError} />
+        <details className="password-fallback">
+          <summary>Parol bilan kirish / dastlabki sozlash</summary>
+          <Field label="Parol">
+            <input
+              autoComplete="current-password"
+              type="password"
+              {...register("password")}
+            />
+            {errors.password && <small>Parolni kiriting</small>}
+          </Field>
+          <Button disabled={isSubmitting} type="submit">
+            {isSubmitting ? "Kutilmoqda…" : "Kirish"}
+            <ArrowUpRight size={18} />
+          </Button>
+        </details>
         <p className="muted">
-          Ota-ona va o‘quvchi hisobini Android ilovasida yarating. O‘qituvchi
-          hisobini administrator beradi.
+          O‘qituvchi hisobini super admin beradi. O‘quvchilar sinf taklif kodi orqali qo‘shiladi.
         </p>
       </form>
     </div>

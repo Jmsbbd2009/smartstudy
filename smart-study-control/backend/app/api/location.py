@@ -6,7 +6,7 @@ from sqlalchemy import select
 from app.db.session import get_db
 from app.models.entities import LocationConsent, LocationShare, AuditEvent, Consent, now
 from app.security.auth import current_user, require
-from app.security.scope import guardian
+from app.security.scope import academic, guardian
 from app.security.rate_limit import limit
 from app.services.rewards import locked_wallet
 from app.schemas.access import LocationPolicy, LocationStart, LocationPoint
@@ -39,7 +39,7 @@ def current(db, child):
             or not policy.enabled
             or not adult
             or not adult.active
-            or not guardian(db, adult, child)
+            or not (guardian(db, adult, child) or (adult.role == "TEACHER" and academic(db, adult, child)))
         ):
             erase(row, "EXPIRED" if row.expires_at <= now() else "REVOKED")
         elif active is None:
@@ -66,8 +66,8 @@ def visible(row):
 
 @router.get("/children/{child}/consent")
 def get_policy(child: str, user=Depends(current_user), db=Depends(get_db, scope="function")):
-    if not guardian(db, user, child) and not (user.role == "STUDENT" and user.id == child):
-        raise HTTPException(403, "Faqat bog‘langan oila uchun")
+    if not guardian(db, user, child) and not (user.role == "TEACHER" and academic(db, user, child)) and not (user.role == "STUDENT" and user.id == child):
+        raise HTTPException(403, "Faqat o‘quvchi, vakolatli oila yoki shu sinf o‘qituvchisi uchun")
     row = db.scalar(select(LocationConsent).where(LocationConsent.child_id == child))
     return {"enabled": bool(row and row.enabled), "max_minutes": row.max_minutes if row else 60}
 
@@ -76,8 +76,8 @@ def get_policy(child: str, user=Depends(current_user), db=Depends(get_db, scope=
 def set_policy(
     child: str, body: LocationPolicy, user=Depends(current_user), db=Depends(get_db, scope="function")
 ):
-    if not guardian(db, user, child):
-        raise HTTPException(403, "Ota-ona vakolati kerak")
+    if not guardian(db, user, child) and not (user.role == "TEACHER" and academic(db, user, child)):
+        raise HTTPException(403, "Vakolatli oila yoki o‘quvchining sinf o‘qituvchisi bo‘lishi kerak")
     locked_wallet(db, child)
     row = db.scalar(select(LocationConsent).where(LocationConsent.child_id == child))
     if not row:
@@ -114,8 +114,8 @@ def start(body: LocationStart, user=Depends(current_user), db=Depends(get_db, sc
     from app.models.entities import User
 
     adult = db.get(User, policy.guardian_id) if policy else None
-    if not policy or not policy.enabled or not adult or not adult.active or not guardian(db, adult, user.id):
-        raise HTTPException(403, "Avval vakolatli ota-ona roziligini yoqishi kerak")
+    if not policy or not policy.enabled or not adult or not adult.active or not (guardian(db, adult, user.id) or (adult.role == "TEACHER" and academic(db, adult, user.id))):
+        raise HTTPException(403, "Avval vakolatli oila yoki sinf o‘qituvchisi muddatli ulashishni yoqishi kerak")
     if body.minutes > policy.max_minutes:
         raise HTTPException(422, "Ota-ona belgilagan muddatdan oshdi")
     if current(db, user.id):
@@ -161,7 +161,10 @@ def stop(ident: str, user=Depends(current_user), db=Depends(get_db, scope="funct
 
 @router.get("/children/{child}/latest")
 def latest(child: str, user=Depends(current_user), db=Depends(get_db, scope="function")):
-    if not guardian(db, user, child) and not (user.role == "STUDENT" and child == user.id):
-        raise HTTPException(403, "Joylashuv faqat o‘quvchi va bog‘langan ota-onaga ochiq")
+    teacher_access = user.role == "TEACHER" and academic(db, user, child)
+    if not guardian(db, user, child) and not teacher_access and not (user.role == "STUDENT" and child == user.id):
+        raise HTTPException(403, "Joylashuv shu o‘quvchi, vakolatli oila va uning sinf o‘qituvchisigagina ochiq")
     row = current(db, child)
+    if teacher_access:
+        db.add(AuditEvent(actor_id=user.id, action="location.teacher_viewed", resource_id=child, details={"active": bool(row)}))
     return visible(row) if row else {"active": False, "latitude": None, "longitude": None}

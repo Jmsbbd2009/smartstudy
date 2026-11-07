@@ -1,10 +1,10 @@
-# Build artifacts — v0.3.1 source
+# Build artifacts — v0.4.2 source
 
-This source snapshot is versionCode 4/versionName 0.3.1. **The included APKs are historical v0.3.0 (versionCode 3) builds and do not include the new native assignment attachment flow.** Rebuild locally with the documented Android SDK/Gradle toolchain before installing v0.3.1. The current workspace used to prepare this snapshot does not contain Gradle 8.11.1 or Android SDK 35, and network policy prevented downloading them; no v0.3.1 compile or test is claimed.
+This source snapshot is versionCode 7/versionName 0.4.2. **The included APKs are historical v0.3.0 (versionCode 3) builds and do not include later source changes.** Rebuild with the documented Android SDK/Gradle toolchain before installing v0.4.2. The current workspace does not contain Gradle 8.11.1 or Android SDK 35; downloading Gradle failed because outbound network access is unavailable. No v0.4.2 compile or test is claimed.
 
 The v0.3.0 APKs were previously built with versionCode 3/versionName 0.3.0, min SDK 26, target/compile 35, Gradle 8.11.1, full JDK 17 (Corretto), and Build Tools 35.0.0. Both v2 signatures were verified with SDK apksigner. No release signing, store publication or device execution is claimed. The universal debug APK includes bundled ML Kit and native libraries for several ABIs. Camera/GPS/OS enforcement are not qualified on physical hardware. No real API key or password is embedded in either historical APK.
 
-Server/backend and web panel run separately. Debug defaults use emulator 10.0.2.2:8000 and 10.0.2.2:5173; passkeys require matching secure web origin and may not work at the debug IP URL. Camera/GPS/OS enforcement were compiled in v0.3.0, not qualified on physical hardware. No real API key or password is embedded in the APKs.
+The Android app connects to the separately hosted API. Its debug default is emulator-only `10.0.2.2:8000`; provide an HTTPS API_URL for a deployable phone build. There is no public website in this release. Camera/GPS/OS enforcement were compiled in v0.3.0, not qualified on physical hardware. No real API key or password is embedded in the APKs. To install an update over an existing app without clearing its data, preserve the same application ID and signing certificate; this workspace has no production signing keystore.
 
 | File | Bytes | SHA-256 |
 |---|---|---|

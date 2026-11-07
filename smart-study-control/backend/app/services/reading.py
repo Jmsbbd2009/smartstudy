@@ -363,6 +363,18 @@ def start_attempt(db, user, plan, lesson, key):
         or lesson.end_page > plan.end_page
     ):
         raise HTTPException(403, "Published lesson must be within assigned pages")
+    required_pages = set(range(lesson.start_page, lesson.end_page + 1))
+    reported_pages = set(
+        db.scalars(
+            select(ReadingProgress.page_number).where(
+                ReadingProgress.plan_id == plan.id,
+                ReadingProgress.page_number >= lesson.start_page,
+                ReadingProgress.page_number <= lesson.end_page,
+            )
+        )
+    )
+    if not required_pages.issubset(reported_pages):
+        raise HTTPException(409, "Read and mark every page in this lesson before starting its test")
     active = db.scalar(
         select(ReadingAttempt).where(
             ReadingAttempt.plan_id == plan.id,

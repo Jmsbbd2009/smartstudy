@@ -60,18 +60,6 @@ services:
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
     restart: unless-stopped
-  web:
-    build:
-      context: .
-      dockerfile: infrastructure/docker/web.Dockerfile
-      args:
-        VITE_API_URL: http://localhost:8000/api/v1
-    ports: ["127.0.0.1:5173:8080"]
-    depends_on:
-      api: {condition: service_healthy}
-    security_opt: [no-new-privileges:true]
-    cap_drop: [ALL]
-    restart: unless-stopped
 volumes:
   postgres-data:
   redis-data:

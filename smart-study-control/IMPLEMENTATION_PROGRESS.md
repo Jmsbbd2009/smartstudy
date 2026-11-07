@@ -1,5 +1,58 @@
 # Implementation progress
 
+Updated: 2026-11-07, v0.4.2 Android branding and API-only deployment configuration.
+
+## v0.4.2 — Android branding and no public website
+
+Completed locally:
+- Added the supplied SMART STUDY PNG as a cleaned transparent brand asset; recolored its dark wordmark for the navy UI, applied it to the launcher icon, login, staff/student dashboards, and an animated launch splash.
+- Added a compressed, accessible student-reading hero illustration in the student home screen, with Uzbek, English, and Russian descriptions.
+- Raised Android versionCode/versionName to 7/0.4.2 and removed the Android link to a separate web panel.
+- Removed the website service from local Compose and the web build from CI. FastAPI remains the Android backend; the React admin source is retained in the repository but is not configured as a deployed website.
+
+Not completed / not verified:
+- GitHub API shows no accessible repositories or installed accounts, and the restored source archive has no Git metadata. No commit or upload was made.
+- The provided Render dashboard tab is not available through this session's browser surface; service settings, environment variables, and deployment status could not be inspected or changed.
+- No Render API URL or Android signing key is configured. This workspace has no confirmed Android SDK, and the required Gradle distribution was previously blocked from downloading. No v0.4.2 APK or remote deployment is claimed.
+- The final source changes still require a clean Android build, backend CI, live HTTPS/API configuration, and real-device visual/alarm/device-owner checks.
+
+Updated: 2026-11-07, v0.4.1 book-specific quiz and page-read gate.
+
+## v0.4.1 — Uploaded PDF based lesson
+
+Completed:
+- Reviewed the user-provided 87-page *Yoz yomg‘iri* PDF. Added an adult-editable, 10-question multiple-choice lesson draft for pages 1–5, with source page references, answer explanations, a concept card and a non-graded evidence prompt. The PDF itself is not bundled into the source archive; the teacher/superadmin uploads their copy through the existing secure book panel.
+- Added a button to load the prepared lesson only when pages 1–5 are selected. The backend checks each source quote against the uploaded PDF page text; the lesson remains a draft until an adult validates the key and publishes it.
+- Quiz start now requires the student to mark every page in the lesson range as read. This is explicitly recorded as student-reported progress, not proof. The randomized quiz assesses cited pages and summarizes which pages were checked by correct answers.
+- Enabled SUPER_ADMIN to upload and own curriculum books; classroom assignment scope remains the teacher workflow.
+- Added web fixture and backend gate/superadmin-upload integration tests.
+- Android versionCode/versionName: 6/0.4.1. Admin web version: 0.4.1.
+
+Verification in this workspace:
+- PDF has 87 pages. First and fifth pages were visually inspected; all ten source snippets were checked against extracted text from their cited PDF pages.
+- Backend `compileall` and Android string XML checks passed (static checks only).
+- Automated pytest/web test suites remain unrun: this workspace lacks a runnable restored pytest environment and admin-web `node_modules`; Gradle 8.11.1 download is blocked and Android SDK is not present. No APK was built, and the attached PDF has not been uploaded to a deployed database because no API server credentials/endpoint are configured here.
+
+Extra ideas included: chronology reconstruction, text-evidence reflection without grading, page-specific review explanations and adaptive practice for missed pages. These are suggestions in the book guide; only the evidence prompt is in this version's UI.
+
+Updated: 2026-11-06, v0.4.0 source update based on the requested dark premium, phone/Telegram-first and book-first direction.
+
+## v0.4.0 user-directed changes
+
+Completed:
+- Android Material 3 uses a consistent deep-navy dark palette with larger typography and rounded surfaces. Login prioritizes phone/login + Telegram OTP, retains password fallback/first student registration, hides parent signup, and checks a 12-character minimum before registration.
+- Student dashboard opens on the book library, shows current assignment count and reward balance, and groups other study actions into larger tap targets. Staff dashboard actions are role-filtered. Admin web login presents Telegram before password fallback; teacher creation defaults to TEACHER. Passkey copy now correctly says device verification may use biometrics or PIN rather than claiming server-side face identification.
+- Teacher location authorization and latest-location access are scoped to the teacher's current classroom roster; coordinate reads create audit events. Student starts each share from the visible Android foreground service with session consent, duration, notification and Stop action. Existing guardian access remains. Other staff and platform admins remain denied.
+- Added a backend integration test for teacher roster scoping, per-session student initiation, unauthorized teacher/superadmin denial and revocation; updated Uzbek/English/Russian Android location copy and API/security setup docs.
+- Android versionCode/versionName are 5/0.4.0; admin-web package version is 0.4.0.
+
+Verification in this workspace:
+- `python3 -m compileall -q backend/app backend/tests` passed.
+- Android `strings.xml` resources parsed as XML and have no duplicate string names.
+- Targeted pytest could not start: the restored virtualenv points to a missing Python executable and the active runtime has no pytest module. Gradle wrapper could not download pinned Gradle 8.11.1 (`Network is unreachable`); no Android SDK is available. Web `node_modules` is absent. Therefore the new backend test, web typecheck/build, Android compile, APK and device behavior are not verified in this turn. Historical test results below apply only to the named earlier source versions.
+
+Known limitations: location sharing is bounded, student initiated and session scoped, but organizations must separately obtain guardian authorization where applicable law requires it. Standard Android mode cannot enforce restrictions across other apps; managed Device Owner enrollment is still required. The unlock flow does not yet automatically equate book reading with unsuspending packages, and teacher policy still needs physical Device Owner end-to-end qualification. No claim of a completed production deployment or new APK.
+
 Updated: 2026-11-05, v0.3.1 source update.
 
 Baseline v0.3.0 verification: **58 backend tests, 11 web unit/DOM tests, 10 Kotlin JVM tests, 2 real HTTP UI tests with 20 workflow checks**. Those results apply to v0.3.0. The v0.3.1 Android attachment upload and 2 new JVM tests have **not** been built or executed: this workspace lacks Gradle 8.11.1 and Android SDK 35, and network access blocked downloading them. The included APKs are clearly labeled historical v0.3.0. Delivery remains a working core with explicit release gaps, not completion of every feature/screen in the original specification.

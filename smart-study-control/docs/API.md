@@ -25,7 +25,7 @@ Refer to OpenAPI for every request/response field and path rather than duplicati
 
 | Capability | Endpoints | Authorization |
 |---|---|---|
-| PDF upload/list/metadata | `POST/GET /books`, `GET /books/{id}` | Upload: parent/teacher; list: owned or currently assigned |
+| PDF upload/list/metadata | `POST/GET /books`, `GET /books/{id}` | Upload: parent/teacher/super admin; list: owned or currently assigned |
 | Source | `GET /books/{id}/pages/{number}`, `GET /books/{id}/file` | Text restricted to assigned range; original file owner only |
 | OCR | `POST /books/{id}/ocr` | Owner, explicit server OCR enablement, 1–3 pages |
 | Lesson authoring | `GET/POST /books/{id}/lessons`, `POST /books/{id}/generate-lesson` | Owner writes; students see only assigned published lessons |
@@ -33,7 +33,7 @@ Refer to OpenAPI for every request/response field and path rather than duplicati
 | Assignment | `POST /books/{id}/plans`, `GET /reading/plans`, `GET /reading/plans/{id}` | Current guardian or owned class roster; student own only |
 | Reward policy | `PUT /reading/plans/{id}/reward-policy` | Linked guardian only |
 | Self report | `POST /reading/plans/{id}/progress` | Assigned student; never credits wallet |
-| Assessment | `POST /reading/plans/{p}/lessons/{l}/attempts`, `GET /reading/attempts/{id}`, `POST /reading/attempts/{id}/finish` | Student starts/finishes; Idempotency-Key for start; adults see completed results |
+| Assessment | `POST /reading/plans/{p}/lessons/{l}/attempts`, `GET /reading/attempts/{id}`, `POST /reading/attempts/{id}/finish` | Student marks all lesson pages before start and starts/finishes; Idempotency-Key for start; adults see completed results |
 | History/manual credit | `GET /reading/plans/{id}/attempts`, `POST /reading/attempts/{id}/approve-reward` | Current scoped readers; credit guardian only |
 | Bounded AI | `GET/PUT /automation/children/{id}`, `POST /automation/children/{id}/run`, `GET /automation/children/{id}/runs` | Linked guardian only; opt-in, bounded academic tasks |
 
@@ -53,8 +53,8 @@ All paths above are relative to `/api/v1`. OpenAPI contains validated input sche
 | `GET /auth/telegram/me`, `PUT /auth/telegram/notifications` | Current staff's linked status and explicit optional Telegram message consent. |
 | `POST /auth/passkeys/{register,login}/{options,verify}`, `GET /auth/passkeys`, `DELETE /auth/passkeys/{id}` | Platform WebAuthn, origin/RP/UV/signature/counter checks; password proof for enrollment/removal. No face templates. |
 | `GET /operations/integrations`, `POST /operations/integrations/check` | Super admin only; redacted configuration and live key/model-list connectivity diagnostics, never actual keys. |
-| `GET/PUT /location/children/{id}/consent` | Student reads own, current linked guardian reads/updates; guardian consent record and bounded duration. |
-| `POST /location/shares`, `POST /location/shares/{id}/{point,stop}` | Student only; explicit sharing consent, active guardian authorization, latest finite coordinate, expiry and stop. |
-| `GET /location/children/{id}/latest` | Student/current guardian only; hides coordinates for stale/inactive shares. No staff bypass. |
+| `GET/PUT /location/children/{id}/consent` | Student reads own; linked guardian or the student's assigned classroom teacher reads/sets bounded session authorization. |
+| `POST /location/shares`, `POST /location/shares/{id}/{point,stop}` | Student only; per-session explicit consent, active guardian or classroom-teacher authorization, latest finite coordinate, expiry and stop. |
+| `GET /location/children/{id}/latest` | Student, linked guardian, or assigned classroom teacher only; teacher reads are audited and stale/inactive shares hide coordinates. No school/platform-admin bypass. |
 
 Passwords that must be renewed can only reach password/logout/me until renewal. Input schemas are exported to OpenAPI. See ACCESS_ALARM_LOCATION_UZ.md for worker setup, deep links, provider boundaries and platform limitations.

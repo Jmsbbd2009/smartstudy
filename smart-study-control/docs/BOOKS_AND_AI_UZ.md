@@ -1,5 +1,13 @@
 # PDF kitob → vizual dars → tushunish testi
 
+## “Yoz yomg‘iri” uchun tayyor test — 1–5-sahifalar
+
+Kitob panelida o‘qituvchi yoki super admin PDFni yuklagach, sahifa oralig‘ini **1 dan 5 gacha** qo‘ying. **1–5-sahifalar uchun tayyor test** tugmasi manbaga bog‘langan dars qoralamasini ochadi: 10 ta aralashtiriladigan test savoli, to‘g‘ri javoblar izohi, tushuncha kartalari va ballga kirmaydigan “matndan dalil top” savoli. Qoralamani saqlang, sahifa iqtiboslari va javob kalitini tekshiring, so‘ng o‘qish topshirig‘iga biriktiring. Noto‘g‘ri javob mukofotni avtomatik bermaydi; vakolatli kattalar tekshiruvni tanlashi mumkin.
+
+O‘quvchi testni boshlashdan oldin dars oralig‘idagi har bir sahifani **Sahifani belgilash** tugmasi bilan qayd etadi. Bu o‘quvchining o‘z hisoboti, sahifani to‘liq o‘qiganini isbotlamaydi. Test savollari faqat belgilangan 1–5-sahifalarga tayanadi, savol va javob variantlari har urinishda aralashtiriladi, natijada qaysi sahifa javob bilan tekshirilgani ko‘rsatiladi. Server iqtiboslar yuklangan PDFning aynan shu sahifalarida borligini tekshiradi. PDFning boshqa nashri yoki noto‘g‘ri OCR matni bo‘lsa, server darsni rad etadi; iqtibosni asliga qarab tuzating. Ushbu test butun asarni o‘qiganlikni tasdiqlamaydi.
+
+Qo‘shimcha o‘rganish g‘oyalari: voqealar tartibini tiklash, qahramon qarorini matndan dalil bilan izohlash, noto‘g‘ri javobdan so‘ng sahifaga qaytib qisqa tushuntirish olish, keyingi testda qiynalgan sahifaga mos savollarni ko‘paytirish. Bular o‘quvchiga yordam beradi; qiyinchilikni jazo yoki zarur aloqa vaqtini cheklash uchun ishlatmaslik kerak.
+
 v0.2.0 uchun amaliy qo‘llanma. Bu oqim haqiqiy fayl, baza va mukofot ledgeri bilan ishlaydi. AI provayderi ulanmagan bo‘lsa dars yaratish tugmasi aniq xato ko‘rsatadi; o‘qituvchi yoki ota-ona darsni qo‘lda ham tuzishi mumkin.
 
 ## Panelda ishlatish
@@ -39,7 +47,7 @@ PDF protsessi 768 MiB virtual xotira, 18 CPU soniya va devor soati bo‘yicha ti
 
 ## Android va o‘chirish himoyasi
 
-Androidda biriktirilgan matn/kartochkalarni ochish, sahifa belgilash, test va natijalar mavjud. Oldin ochilgan o‘qish ma’lumotlari foydalanuvchi bo‘yicha Roomda saqlanadi; offline ko‘rish mumkin. Testni boshlash/yakunlash, progress yuborish va daqiqa berish hozir internet talab qiladi. PDF yuklash va dars muallifligi web panelda. Room 1→2 migratsiyasi oldingi navbat va vazifalarni saqlaydi; migratsiya instrument testi yozilgan va kompilyatsiya qilingan, qurilmada bajarilmagan.
+Androidda biriktirilgan matn/kartochkalarni ochish, sahifa belgilash, test va natijalar mavjud. Oldin ochilgan o‘qish ma’lumotlari foydalanuvchi bo‘yicha Roomda saqlanadi; offline ko‘rish mumkin. Testni boshlash/yakunlash, progress yuborish va daqiqa berish hozir internet talab qiladi. PDF yuklash va dars muallifligi native Androidda hali yo‘q; React manba kodi saqlangan, ammo website sifatida deploy qilinmaydi. Room 1→2 migratsiyasi oldingi navbat va vazifalarni saqlaydi; migratsiya instrument testi yozilgan va kompilyatsiya qilingan, qurilmada bajarilmagan.
 
 Ilovani tizim darajasida o‘chirishdan himoyalash faqat vakolatli **Device Owner** rejimida. Oddiy APK bunday huquqqa ega emas. Qurilma ekranida va ota-ona panelida haqiqiy `isUninstallBlocked` o‘qilishi asosidagi holat ko‘rsatiladi; server bu qurilmaning o‘z hisoboti ekanini saqlaydi. Bu hardware attestatsiyasi yoki factory-resetdan himoya emas. Sozlash/tiklash: `DEVICE_OWNER_SETUP.md`.
 

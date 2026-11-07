@@ -4,13 +4,13 @@
 
 ## Super admin va xodimlar
 
-Super admin uchun login `500773209`; `50 0773209` ko‘rinishi ham normalizatsiya qilinadi. Dastlabki parol serverdagi `BOOTSTRAP_SUPERADMIN_PASSWORD`dan olinadi. Haqiqiy parollar va API kalitlari arxiv/APK/manba kodiga qo‘shilmagan. `.env` maxfiy server fayli, uni boshqa kishiga yubormang yoki gitga qo‘shmang.
+Super admin loginini serverdagi `BOOTSTRAP_SUPERADMIN_LOGIN` orqali belgilang. Dastlabki parol `BOOTSTRAP_SUPERADMIN_PASSWORD`dan olinadi. Haqiqiy parollar va API kalitlari arxiv/APK/manba kodiga qo‘shilmagan. `.env` maxfiy server fayli, uni boshqa kishiga yubormang yoki gitga qo‘shmang.
 
-1. `python scripts/configure.py` bilan `.env` yarating. `BOOTSTRAP_SUPERADMIN_LOGIN=500773209` va maxfiy vaqtinchalik parolni kiriting; kamida 12 belgi tavsiya qilinadi. Boshlang‘ich import 10 belgili vaqtinchalik parolni ham qabul qiladi, lekin boshqaruvga kirishdan oldin majburiy yangilash bor.
+1. `python scripts/configure.py` bilan `.env` yarating. `BOOTSTRAP_SUPERADMIN_LOGIN`ga o‘zingiz tanlagan login va serverdagi `BOOTSTRAP_SUPERADMIN_PASSWORD`ga maxfiy vaqtinchalik parol kiriting; kamida 12 belgi tavsiya qilinadi. Kirishdan keyin parolni almashtirish majburiy.
 2. Migratsiya: `alembic upgrade head`; keyin `python -m app.bootstrap`. Takror ishga tushirish mavjud parolni almashtirmaydi. Boshqa super admin allaqachon bo‘lsa, yangi nusxa ochmaydi.
-3. Panelda login va vaqtinchalik parol bilan kiring → kamida 12 belgili yangi parol. Eski JWT va refresh tokenlari bekor bo‘ladi. Vaqtinchalik parol bilan xodimlar yoki qurilma boshqaruvi APIlari yopiq.
-4. **Xodimlar** → maktab admini yarating va maktab nomini kiriting. So‘ng o‘qituvchi yarating va shu maktabni tanlang. Yangi xodim ham parolini birinchi kirishda yangilaydi.
-5. Hisob yaratish va xodimni to‘xtatish/yoqish faqat super adminda. Maktab admini o‘z maktabidagi xodimlarni ko‘radi va ularga xabar yuboradi. O‘qituvchi boshqa maktab xodimlariga yoki oilaviy qurilmaga vakolat olmaydi.
+3. Kirish uchun Android ilovasidan login va vaqtinchalik paroldan foydalaning; keyin kamida 12 belgili yangi parol o‘rnating. Eski JWT va refresh tokenlari bekor bo‘ladi. Vaqtinchalik parol bilan xodimlar yoki qurilma boshqaruvi APIlari yopiq.
+4. Xodim hisoblarini hozircha server CLI orqali vakolatli super admin yaratadi: `python -m app.cli create-user --help`. Yangi xodim ham parolini birinchi kirishda yangilaydi.
+5. Hisob yaratish va xodimni to‘xtatish/yoqish faqat super admin vakolatida. Native Android boshqaruv ekranlari to‘liq tugamaguncha bu amallar CLI orqali bajariladi.
 
 Docker entrypoint `.env`da bootstrap login/parol bo‘lsa migratsiyadan keyin bir marta yaratadi. Console uchun `python scripts/run_local.py app.bootstrap` maxfiy `.env`ni jarayon argumentlariga chiqarmay yuklaydi. Lokal helper SQLite uchun `.env` DATABASE_URLni mahalliy yo‘lga, UPLOAD_DIRni mahalliy katalogga o‘zgartiring; production uchun PostgreSQL/Redis/HTTPS kerak.
 
@@ -35,7 +35,7 @@ Web panel **Qurilma kalitini qo‘shish** orqali haqiqiy WebAuthn/passkey ro‘y
 
 `PASSKEY_RP_ID` — domen, masalan `study.example.uz`; `PASSKEY_ORIGIN=https://study.example.uz`. Port bo‘lsa origin ichida bo‘lishi kerak. Lokal kompyuterda `localhost`/`http://localhost:5173` qo‘llanadi. `10.0.2.2` yoki LAN HTTP manzilida passkey brauzer tomonidan bloklanishi mumkin. HTTPS kerak. Har safar server UV (user verification), origin, RP hash, challenge, credential egasi, imzo va counter/replayni tekshiradi. Platform autentifikatori qanday modality ishlatganini server “yuz” deb taxmin qilmaydi.
 
-Androidda xodimlar uchun Telegram OTP kirishi native. Passkey sozlash va yuz/barmoq orqali kirish admin web panelida; APKdagi **Yuz / qurilma kaliti va admin paneli** shu panelni ochadi. Debug `DEBUG_ADMIN_WEB_URL`, release `ADMIN_WEB_URL` bilan haqiqiy panel manzilini bering.
+Androidda xodimlar uchun Telegram OTP kirishi native. Bu relizda alohida web sahifa yoki passkey sozlash ekrani chiqarilmaydi; Android biometric login va native staff management keyingi release vazifalari.
 
 ## Foto budilnik
 
@@ -47,11 +47,11 @@ Snooze va oddiy ovozni to‘xtatish saqlangan. Photo match, qo‘lda to‘xtatis
 
 ## Rozilik bilan real vaqtdagi joylashuv
 
-Ota-ona panelda **Oilaviy joylashuv** → farzandni tanlash → rozilik va maksimal muddat (1–240 daqiqa). Keyin o‘quvchi Androidda **Joylashuvni ulashish**ni ochib, o‘z roziligini belgilaydi va ruxsatlarni beradi. Aniq yoki taxminiy joylashuv qabul qilinadi. Bildirishnoma ruxsatisiz yangi ulashish boshlanmaydi.
+O‘qituvchi o‘z sinfidagi o‘quvchini paneldagi **O‘quvchi joylashuvi** bo‘limidan tanlab, sessiya ruxsatini yoqishi mumkin. Bog‘langan vasiy ham **Oilaviy joylashuv** bo‘limidan ruxsat boshqarishi mumkin. Keyin o‘quvchi Androidda **Joylashuvni ulashish**ni ochib, har bir sessiya uchun aniq rozilik beradi va ruxsatlarni beradi. Aniq yoki taxminiy joylashuv qabul qilinadi. Bildirishnoma ruxsatisiz yangi ulashish boshlanmaydi.
 
 **Ulashishni boshlash** — taxminan 30 soniyada oxirgi koordinata serverga, ota-ona paneli esa 5 soniyada yangilanadi. Doim ko‘rinadigan foreground bildirishnomada **To‘xtatish** bor. Ilova yashirin kuzatuv, avtomatik rebootdan qayta yoqish yoki cheksiz tracking qilmaydi. Faqat oxirgi koordinata; marshrut tarixi yo‘q. 90 soniyadan eski signal eskirgan deb belgilanadi va koordinata API javobidan yashiriladi. Stop/rozilikni bekor qilish/muddat tugashi koordinatani tozalaydi. Offline Stop darhol telefon GPSini to‘xtatadi va serverga stop yozuvini WorkManagerda navbatga qo‘yadi; server ulanishsiz darhol tasdiqlay olmaydi.
 
-Faqat o‘quvchi va hozir bog‘langan vakolatli ota-onalar ko‘radi. O‘qituvchi, maktab admini yoki platforma super admini bu API orqali koordinata ololmaydi. Tashqi xarita faqat ota-ona havolani bosganda ochiladi. GPS aniqligi/tarmoq/OEMga bog‘liq; soxta lokatsiyaga qarshi apparat attestatsiyasi va kafolat yo‘q.
+Faqat o‘quvchi, bog‘langan vakolatli vasiy va aynan shu o‘quvchi ro‘yxatda bor sinf o‘qituvchisi ko‘radi. Boshqa sinf o‘qituvchisi, maktab admini va platforma super admini koordinata ololmaydi. O‘qituvchining har bir ko‘rishi auditga yoziladi. Tashqi xarita foydalanuvchi havolani bosgandagina ochiladi. GPS aniqligi/tarmoq/OEMga bog‘liq; soxta lokatsiyaga qarshi apparat attestatsiyasi va kafolat yo‘q. Tashkilot voyaga yetmaganlar uchun qonuniy vakil roziligini talab qiladigan joylarda, ushbu sessiya ruxsatidan tashqari tegishli vakil roziligini ham olishi shart.
 
 ## Ilovalarni cheklash va kitobdan keyin ochish
 

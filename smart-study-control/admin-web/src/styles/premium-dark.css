@@ -1,0 +1,111 @@
+:root {
+  color-scheme: dark;
+  font-size: 16px;
+  color: #f5f7fc;
+  background: #101c35;
+}
+body, .shell, main, .login-shell, .login-page {
+  color: #f5f7fc;
+  background: #101c35;
+}
+aside, header, .card, .login-form, .login-card, .book-card, .editor-section,
+.review-questions, .access-step, .reading-progress, .lesson-list > button {
+  color: #f5f7fc;
+  background-color: #182642;
+  border-color: #2b3d5c;
+}
+header {
+  background: rgba(16, 28, 53, 0.94);
+  border-bottom-color: #2b3d5c;
+}
+aside { border-right-color: #2b3d5c; }
+.brand, .account strong, h1, h2, h3, .card strong, td strong { color: #f5f7fc; }
+.workspace, .account small, .eyebrow, .page-title p, .stat-label, .field > span,
+.checkbox-label, .book-card small, .book-card > span:last-child, .reading-note,
+.reading-progress > p, .lesson-list small, .access-settings small {
+  color: #b8c4d8;
+}
+nav button { color: #c3cee0; font-size: 15px; min-height: 54px; }
+nav button.active { color: #a9c0ff; background: #24385c; }
+.workspace span, .avatar, .stat-icon, .book-cover { background-color: #24385c; color: #9bb6ff; }
+.privacy-note { border-color: #2b3d5c; }
+.privacy-note small, .hero p { color: #c0cbe0; }
+.hero { background: linear-gradient(120deg, #1c3155, #101c35); }
+.hero-label, .hero p { font-size: 14px; }
+.hero h2 { font-size: 34px; }
+.hero button { font-size: 16px; }
+.page-title h1 { font-size: 34px; }
+.page-title p, header p { font-size: 15px; color: #c3cee0; }
+.stat-label { font-size: 14px; }
+table { font-size: 14px; }
+th { font-size: 12px; border-bottom-color: #2b3d5c; }
+td, .submission { border-bottom-color: #2b3d5c; }
+td small, .submission small, .badge, .empty, .reading-note,
+.reading-working, .reading-progress > div, .reading-progress > p,
+.lesson-list small, .field > span, .checkbox-label, .overview-grid .card > p {
+  font-size: 14px;
+}
+.badge { background: #3a3040; color: #ffd780; }
+.badge.positive { background: #123c37; color: #6fe0b7; }
+input:not([type="checkbox"]), select, textarea {
+  color: #f5f7fc;
+  background: #101c35;
+  border-color: #405575;
+  border-radius: 12px;
+  padding: 14px 15px;
+  font-size: 16px;
+}
+input::placeholder, textarea::placeholder { color: #9aa9c0; }
+input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
+  -webkit-text-fill-color: #f5f7fc;
+  box-shadow: 0 0 0 1000px #101c35 inset;
+}
+.error { background: #3d252e; border-color: #75434c; color: #ffd3d8; font-size: 15px; }
+.review-result, .reading-working, .code, .reading-source, .flash-card,
+.source-quote, .reading-tabs, .lesson-list > button {
+  color: #e5ecf7;
+  background: #101c35;
+}
+.reading-source { font-size: 17px; }
+.reading-tabs button { color: #bdc9dc; font-size: 14px; }
+.reading-tabs button.selected, .lesson-list > button.selected {
+  color: #dbe6ff;
+  background: #24385c;
+  border-color: #477bff;
+}
+.flash-card.flipped, .publish-panel, .reading-result {
+  color: #e6fff5;
+  background: #153b38;
+  border-color: #236653;
+}
+.reading-result > strong, .reading-result > p { color: #9fe6ca; }
+.login-story { background: linear-gradient(145deg, #1d3156, #101c35); }
+.login-form { max-width: 540px; padding: 44px; }
+.login-form h2 { font-size: 36px; }
+.login-form p { color: #c3cee0; font-size: 16px; }
+.login-form .muted, .login-form small { font-size: 14px; }
+.login-form details { margin-top: 22px; border-top: 1px solid #2b3d5c; padding-top: 18px; }
+.login-form summary { color: #c3cee0; cursor: pointer; padding: 8px 0; font-size: 15px; }
+.brand small, .workspace, .eyebrow, .sidebar-footer > button, .account small,
+.privacy-note, .empty, .hero-label, .reading-note, .reading-working,
+.lesson-list small, .flash-card small, .reading-result > p, footer {
+  font-size: 13px;
+}
+.account strong { font-size: 15px; }
+.stat-value { font-size: 32px; }
+nav button, button, a { min-height: 48px; }
+.field { gap: 10px; margin: 18px 0; }
+.card { border-radius: 20px; }
+.brand-icon { transform: none; box-shadow: 0 8px 24px #477bff40; }
+.book-card { border-radius: 18px; }
+.book-card strong { font-size: 18px; }
+.access-options { border-color: #2b3d5c; }
+.access-options p, .access-settings p { color: #c3cee0; font-size: 15px; }
+.access-link { min-height: 48px; align-items: center; font-size: 15px; }
+.content { padding-top: 38px; }
+@media (max-width: 720px) {
+  .login-form { padding: 28px 22px; }
+  .login-story { padding: 36px 24px; }
+  .login-story h1 { font-size: 38px; }
+  .content { padding: 22px 16px; }
+}

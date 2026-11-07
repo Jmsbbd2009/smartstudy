@@ -74,10 +74,10 @@ def test_bootstrap_normalizes_login_and_never_replaces_password(context):
 
     c, f = context
     with f.begin() as db:
-        assert bootstrap(db, "50 0773209", "unit-only-password-123")
+        assert bootstrap(db, "555 1234567", "unit-only-password-123")
     with f.begin() as db:
-        assert not bootstrap(db, "500773209", "another-password-123")
-    result = c.post("/api/v1/auth/login", json={"email": "50 0773209", "password": "unit-only-password-123"})
+        assert not bootstrap(db, "5551234567", "another-password-123")
+    result = c.post("/api/v1/auth/login", json={"email": "555 1234567", "password": "unit-only-password-123"})
     assert result.status_code == 200 and result.json()["user"]["must_change_password"]
 
 
@@ -143,6 +143,84 @@ def test_telegram_identity_binding_delivery_and_replay(people, monkeypatch):
     assert c.post("/api/v1/auth/telegram/login/finish", json=proof).status_code == 401
     with f() as db:
         assert db.get(AuthChallenge, start["challenge_id"]).code_hash != code
+
+
+def test_student_can_bind_telegram_then_sign_in_with_phone_alias(people, monkeypatch):
+    c, _, _ = people
+    sent = setup_bot(monkeypatch)
+    registered = c.post(
+        "/api/v1/auth/register",
+        json={
+            "phone": "+998 90 123-45-67",
+            "name": "Student phone",
+            "password": "Student-password-123",
+            "role": "STUDENT",
+        },
+    )
+    assert registered.status_code == 201, registered.text
+    headers = {"Authorization": "Bearer " + registered.json()["access_token"]}
+    bind = c.post(
+        "/api/v1/auth/telegram/link/start",
+        headers=headers,
+        json={"password": "Student-password-123"},
+    )
+    assert bind.status_code == 200, bind.text
+    binding = bind.json()
+    start_token = binding["deep_link"].split("start=")[1]
+    webhook_headers = {"X-Telegram-Bot-Api-Secret-Token": "test-only-secret"}
+    assert c.post(
+        "/api/v1/telegram/webhook",
+        headers=webhook_headers,
+        json={
+            "update_id": 301,
+            "message": {
+                "chat": {"id": 44001, "type": "private"},
+                "from": {"id": 44001, "is_bot": False},
+                "text": "/start " + start_token,
+            },
+        },
+    ).status_code == 200
+    assert c.post(
+        "/api/v1/auth/telegram/link/finish",
+        headers=headers,
+        json={
+            "challenge_id": binding["challenge_id"],
+            "verifier": binding["verifier"],
+            "password": "Student-password-123",
+        },
+    ).status_code == 200
+
+    login = c.post(
+        "/api/v1/auth/telegram/login/start",
+        json={"login": "+998 (90) 123 45 67"},
+    )
+    assert login.status_code == 200, login.text
+    login_data = login.json()
+    start_token = login_data["deep_link"].split("start=")[1]
+    assert c.post(
+        "/api/v1/telegram/webhook",
+        headers=webhook_headers,
+        json={
+            "update_id": 302,
+            "message": {
+                "chat": {"id": 44001, "type": "private"},
+                "from": {"id": 44001, "is_bot": False},
+                "text": "/start " + start_token,
+            },
+        },
+    ).status_code == 200
+    code = sent[-1][1].split("kodi: ")[1][:6]
+    finish = c.post(
+        "/api/v1/auth/telegram/login/finish",
+        json={
+            "challenge_id": login_data["challenge_id"],
+            "verifier": login_data["verifier"],
+            "code": code,
+        },
+    )
+    assert finish.status_code == 200, finish.text
+    assert finish.json()["user"]["role"] == "STUDENT"
+    assert finish.json()["user"]["login"] == "+998901234567"
 
 
 def test_otp_bruteforce_counter_persists(people, monkeypatch):

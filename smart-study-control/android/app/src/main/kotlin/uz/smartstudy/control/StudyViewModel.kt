@@ -29,7 +29,7 @@ data class StudyState(val authenticated:Boolean=false,val busy:Boolean=false,val
         finally { mutable.update { it.copy(busy=false) } }
     } }
     fun auth(email:String,password:String,name:String?,parent:Boolean) = run {
-        val data=buildJsonObject { put("email",email);put("password",password);if(name!=null) {put("name",name);put("role",if(parent) "PARENT" else "STUDENT")} }
+        val data=buildJsonObject { if(name!=null) put("phone",email) else put("email",email);put("password",password);if(name!=null) {put("name",name);put("role",if(parent) "PARENT" else "STUDENT")} }
         val response=repository.api.post(if(name==null) "auth/login" else "auth/register",data)
         acceptSession(response)
     }

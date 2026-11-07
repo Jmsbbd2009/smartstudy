@@ -40,6 +40,12 @@ import uz.smartstudy.domain.PhotoChallenge
     override fun onCreate(savedInstanceState:Bundle?) { super.onCreate(savedInstanceState);setContent { StudyTheme { StudyApp() } } }
 }
 @Composable fun StudyApp(vm:StudyViewModel=hiltViewModel()) {
+    var introShown by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { delay(1850); introShown = true }
+    if (!introShown) {
+        SmartStudySplash()
+        return
+    }
     val state by vm.state.collectAsStateWithLifecycle()
     val context=LocalContext.current
     Surface(Modifier.fillMaxSize()) {
@@ -47,7 +53,10 @@ import uz.smartstudy.domain.PhotoChallenge
             val nav=rememberNavController()
             Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                 Row(Modifier.fillMaxWidth().padding(12.dp),horizontalArrangement=Arrangement.SpaceBetween) {
-                    TextButton(onClick={nav.navigate("home"){popUpTo("home"){inclusive=true}}}) { Text(stringResource(R.string.home)) }
+                    Column(Modifier.weight(1f)) {
+                        Text("SMART STUDY",style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.primary)
+                        Text(vm.user?.text("name").orEmpty(),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=1)
+                    }
                     TextButton(onClick={vm.refresh();SyncWorker.now(context)}) { Text(stringResource(R.string.sync)) }
                     TextButton(onClick={NotificationSync.clear(context);vm.logout()}) { Text(stringResource(R.string.logout)) }
                 }
@@ -95,34 +104,125 @@ import uz.smartstudy.domain.PhotoChallenge
 @Composable fun Action(label:Int,enabled:Boolean=true,action:()->Unit) { Button(onClick=action,enabled=enabled,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)) { Text(stringResource(label)) } }
 @Composable fun LoginScreen(vm:StudyViewModel,state:StudyState) {
     var email by remember { mutableStateOf("") };var password by remember { mutableStateOf("") };var name by remember { mutableStateOf("") }
-    var registering by remember { mutableStateOf(false) };var parent by remember { mutableStateOf(false) }
+    var registering by remember { mutableStateOf(false) };var passwordMode by remember { mutableStateOf(false) }
     Page(R.string.app_name) {
-        Text("Learn. Achieve. Unlock.",style=MaterialTheme.typography.titleLarge)
-        Input(R.string.email,email){email=it}
-        OutlinedTextField(password,{password=it},label={Text(stringResource(R.string.password))},visualTransformation=PasswordVisualTransformation(),modifier=Modifier.fillMaxWidth())
+        androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(R.drawable.smartstudy_logo),
+            contentDescription = stringResource(R.string.app_name),
+            contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+            modifier = Modifier.fillMaxWidth().height(112.dp).padding(horizontal = 12.dp)
+        )
+        Spacer(Modifier.height(8.dp))
+        Text("SMART STUDY",style=MaterialTheme.typography.labelLarge,color=MaterialTheme.colorScheme.primary)
+        Text("Learn. Achieve. Unlock.",style=MaterialTheme.typography.headlineLarge)
+        Text(stringResource(R.string.login_subtitle),style=MaterialTheme.typography.bodyLarge,color=MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(18.dp))
+        Input(R.string.phone_or_login,email){email=it}
+        if(passwordMode || registering) OutlinedTextField(password,{password=it},label={Text(stringResource(R.string.password))},visualTransformation=PasswordVisualTransformation(),modifier=Modifier.fillMaxWidth(),minLines=1)
         if(registering) {
             Input(R.string.name,name){name=it}
-            Row { FilterChip(selected=!parent,onClick={parent=false},label={Text(stringResource(R.string.student))});Spacer(Modifier.width(12.dp));FilterChip(selected=parent,onClick={parent=true},label={Text(stringResource(R.string.parent))}) }
         }
         if(state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         if(state.error) Text(stringResource(R.string.error),color=MaterialTheme.colorScheme.error)
-        Action(if(registering) R.string.register else R.string.sign_in,!state.busy && email.isNotBlank() && password.isNotBlank() && (!registering || name.isNotBlank())) { vm.auth(email,password,if(registering) name else null,parent) }
-        if(!registering)TelegramSignIn(vm,email)
-        TextButton(onClick={registering=!registering}) { Text(stringResource(if(registering) R.string.sign_in else R.string.register)) }
+        if(!registering && !passwordMode) TelegramSignIn(vm,email)
+        if(passwordMode || registering) Action(if(registering) R.string.register else R.string.sign_in,!state.busy && email.isNotBlank() && password.isNotBlank() && (!registering || (name.isNotBlank() && password.length >= 12))) { vm.auth(email,password,if(registering) name else null,false) }
+        TextButton(onClick={if(registering){registering=false;passwordMode=false}else passwordMode=!passwordMode}) { Text(stringResource(if(registering) R.string.sign_in else if(passwordMode) R.string.login_with_telegram else R.string.login_with_password)) }
+        TextButton(onClick={registering=true;passwordMode=true}) { Text(stringResource(R.string.student_register)) }
     }
 }
 @Composable fun HomeScreen(vm:StudyViewModel,navigate:(String)->Unit) {
     LaunchedEffect(Unit) { vm.refresh() }
     val state by vm.state.collectAsStateWithLifecycle()
+    if(vm.user?.text("role")=="STUDENT") {
+        StudentDashboard(vm,state,navigate)
+        return
+    }
     Page(R.string.home) {
+        androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(R.drawable.smartstudy_logo),
+            contentDescription = stringResource(R.string.app_name),
+            contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+            modifier = Modifier.fillMaxWidth().height(76.dp).padding(horizontal = 30.dp)
+        )
         Text(vm.user?.text("name").orEmpty(),style=MaterialTheme.typography.headlineLarge)
         Text("${state.assignments.count { it.text("status")=="APPROVED" }} / ${state.assignments.size}",style=MaterialTheme.typography.displayMedium)
         LinearProgressIndicator(progress={if(state.assignments.isEmpty()) 0f else state.assignments.count {it.text("status")=="APPROVED"}.toFloat()/state.assignments.size},modifier=Modifier.fillMaxWidth())
-        val items=if(vm.user?.text("role")=="STUDENT") listOf("location" to R.string.location_sharing,"books" to R.string.books,"assignments" to R.string.assignments,"tutor" to R.string.tutor,"quizzes" to R.string.quizzes,"apps" to R.string.apps,"rewards" to R.string.rewards,"focus" to R.string.focus,"alarms" to R.string.alarms,"sleep" to R.string.sleep,"reports" to R.string.reports,"family" to R.string.family,"device" to R.string.device_status,"notifications" to R.string.notifications,"settings" to R.string.settings)
-            else if(vm.user?.text("role")=="PARENT") listOf("books" to R.string.books,"assignments" to R.string.assignments,"create" to R.string.create_assignment,"family" to R.string.family,"notifications" to R.string.notifications,"settings" to R.string.settings)
-            else if(vm.user?.text("role")=="TEACHER") listOf("staff-security" to R.string.staff_security,"books" to R.string.books,"assignments" to R.string.assignments,"notifications" to R.string.notifications,"settings" to R.string.settings)
-            else listOf("staff-security" to R.string.staff_security,"notifications" to R.string.notifications,"settings" to R.string.settings)
+        val items=when(vm.user?.text("role")) {
+            "TEACHER" -> listOf("books" to R.string.books,"assignments" to R.string.assignments,"quizzes" to R.string.quizzes,"staff-security" to R.string.account_security,"notifications" to R.string.notifications,"settings" to R.string.settings)
+            "SUPER_ADMIN" -> listOf("books" to R.string.books,"assignments" to R.string.assignments,"staff-security" to R.string.staff_security,"notifications" to R.string.notifications,"settings" to R.string.settings)
+            "PARENT" -> listOf("family" to R.string.family,"create" to R.string.create_assignment,"assignments" to R.string.assignments,"books" to R.string.books,"reports" to R.string.reports,"staff-security" to R.string.account_security,"notifications" to R.string.notifications,"settings" to R.string.settings)
+            else -> listOf("staff-security" to R.string.account_security,"notifications" to R.string.notifications,"settings" to R.string.settings)
+        }
         items.forEach { (route,label) -> OutlinedButton(onClick={navigate(route)},modifier=Modifier.fillMaxWidth().heightIn(min=52.dp)) { Text(stringResource(label)) } }
+    }
+}
+@Composable private fun StudentDashboard(vm:StudyViewModel,state:StudyState,navigate:(String)->Unit) {
+    var wallet by remember { mutableStateOf<JsonObject?>(null) }
+    LaunchedEffect(Unit) { vm.run { wallet=vm.repository.api.get("rewards/wallet") } }
+    Page(R.string.home) {
+        androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(R.drawable.smartstudy_logo),
+            contentDescription = stringResource(R.string.app_name),
+            contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+            modifier = Modifier.fillMaxWidth().height(96.dp).padding(horizontal = 20.dp)
+        )
+        Card(Modifier.fillMaxWidth()) {
+            androidx.compose.foundation.Image(
+                painter = androidx.compose.ui.res.painterResource(R.drawable.student_reading),
+                contentDescription = stringResource(R.string.study_illustration),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                modifier = Modifier.fillMaxWidth().height(172.dp)
+            )
+        }
+        Text(stringResource(R.string.student_greeting,vm.user?.text("name").orEmpty()),style=MaterialTheme.typography.headlineLarge)
+        Text(stringResource(R.string.today_learning),style=MaterialTheme.typography.bodyLarge,color=MaterialTheme.colorScheme.onSurfaceVariant)
+        Card(Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.primaryContainer)) {
+            Column(Modifier.padding(24.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
+                Text(stringResource(R.string.books),style=MaterialTheme.typography.headlineMedium)
+                Text(stringResource(R.string.books_home_subtitle),style=MaterialTheme.typography.bodyLarge)
+                Button(onClick={navigate("books")},modifier=Modifier.fillMaxWidth().heightIn(min=58.dp)) { Text(stringResource(R.string.open_library),style=MaterialTheme.typography.titleMedium) }
+            }
+        }
+        Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(22.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+                Text(stringResource(R.string.assignments),style=MaterialTheme.typography.titleLarge)
+                Text("${state.assignments.count { it.text("status") != "APPROVED" }}",style=MaterialTheme.typography.displayMedium,color=MaterialTheme.colorScheme.tertiary)
+                Text(stringResource(R.string.assignments_home_subtitle),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedButton(onClick={navigate("assignments")},modifier=Modifier.fillMaxWidth().heightIn(min=54.dp)) { Text(stringResource(R.string.open_assignments)) }
+            }
+        }
+        Card(Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant)) {
+            Row(Modifier.fillMaxWidth().padding(20.dp),horizontalArrangement=Arrangement.SpaceBetween) {
+                Column {
+                    Text(stringResource(R.string.available),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(wallet?.text("available")?.ifBlank { "0" } ?: "—",style=MaterialTheme.typography.headlineMedium)
+                }
+                Button(onClick={navigate("apps")},modifier=Modifier.heightIn(min=52.dp)) { Text(stringResource(R.string.apps)) }
+            }
+        }
+        Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(onClick={navigate("tutor")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.tutor)) }
+            OutlinedButton(onClick={navigate("quizzes")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.quizzes)) }
+        }
+        Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(onClick={navigate("rewards")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.rewards)) }
+            OutlinedButton(onClick={navigate("focus")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.focus)) }
+        }
+        Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(onClick={navigate("alarms")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.alarms)) }
+            OutlinedButton(onClick={navigate("reports")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.reports)) }
+        }
+        Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(onClick={navigate("notifications")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.notifications)) }
+            OutlinedButton(onClick={navigate("settings")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.settings)) }
+        }
+        OutlinedButton(onClick={navigate("location")},modifier=Modifier.fillMaxWidth().heightIn(min=54.dp)) { Text(stringResource(R.string.location_sharing)) }
+        Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(onClick={navigate("family")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.family)) }
+            OutlinedButton(onClick={navigate("device")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.device_status)) }
+        }
+        OutlinedButton(onClick={navigate("sleep")},modifier=Modifier.fillMaxWidth().heightIn(min=54.dp)) { Text(stringResource(R.string.sleep)) }
+        OutlinedButton(onClick={navigate("staff-security")},modifier=Modifier.fillMaxWidth().heightIn(min=54.dp)) { Text(stringResource(R.string.account_security)) }
     }
 }
 @Composable fun AssignmentScreen(vm:StudyViewModel,id:String) {
