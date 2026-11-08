@@ -13,6 +13,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -40,6 +41,14 @@ import uz.smartstudy.domain.PhotoChallenge
     override fun onCreate(savedInstanceState:Bundle?) { super.onCreate(savedInstanceState);setContent { StudyTheme { StudyApp() } } }
 }
 @Composable fun StudyApp(vm:StudyViewModel=hiltViewModel()) {
+    val state by vm.state.collectAsStateWithLifecycle()
+    val context=LocalContext.current
+    val prefs=remember { uz.smartstudy.data.StudyPreferences(context.applicationContext) }
+    val userId=if(state.authenticated) vm.user?.text("id").orEmpty() else "visitor"
+    val appearance by remember(userId) { prefs.appearance(userId) }.collectAsStateWithLifecycle(uz.smartstudy.data.ProfileAppearance())
+    StudyTheme(accent=appearance.theme) { StudyContent(vm,appearance.sticker) }
+}
+@Composable private fun StudyContent(vm:StudyViewModel,sticker:String) {
     var introShown by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { delay(1850); introShown = true }
     if (!introShown) {
@@ -55,7 +64,7 @@ import uz.smartstudy.domain.PhotoChallenge
                 Row(Modifier.fillMaxWidth().padding(12.dp),horizontalArrangement=Arrangement.SpaceBetween) {
                     Column(Modifier.weight(1f)) {
                         Text("SMART STUDY",style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.primary)
-                        Text(vm.user?.text("name").orEmpty(),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=1)
+                        Text(vm.user?.text("name").orEmpty()+" "+sticker,style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=1)
                     }
                     TextButton(onClick={vm.refresh();SyncWorker.now(context)}) { Text(stringResource(R.string.sync)) }
                     TextButton(onClick={NotificationSync.clear(context);vm.logout()}) { Text(stringResource(R.string.logout)) }
@@ -88,7 +97,26 @@ import uz.smartstudy.domain.PhotoChallenge
                     composable("notifications") { NotificationsScreen(vm) }
                     composable("offline") { QueueScreen(vm) }
                     composable("sleep") { Page(R.string.sleep) { Text(stringResource(R.string.sleep_help));Text(PolicyStore(context).policy) } }
+                    composable("profile") { ProfileHome(vm,sticker){nav.navigate(it)} }
+                    composable("profile/theme") { ProfileTheme(vm){nav.popBackStack()} }
+                    composable("profile/reading") { ProfileReading(vm,false,{nav.popBackStack()}){nav.navigate("books")} }
+                    composable("profile/results") { ProfileReading(vm,true,{nav.popBackStack()}){nav.navigate("books")} }
+                    composable("profile/sessions") { ProfileSessions(vm){nav.popBackStack()} }
+                    composable("profile/security") { ProfileSecurity({nav.popBackStack()}){nav.navigate(it)} }
                     composable("settings") { SettingsScreen(vm) }
+                }
+                val entry by nav.currentBackStackEntryAsState()
+                val route=entry?.destination?.route.orEmpty()
+                NavigationBar {
+                    val tabs=if(vm.user?.text("role")=="STUDENT") listOf(
+                        Triple("home","🏠","Asosiy"),Triple("books","📚","Kitoblar"),
+                        Triple("focus","⏱","Fokus"),Triple("tutor","💬","AI ustoz"),Triple("profile","👤","Profil")
+                    ) else listOf(Triple("home","🏠","Asosiy"),Triple("notifications","🔔","Xabarlar"),Triple("profile","👤","Profil"))
+                    tabs.forEach { (target,icon,label) -> NavigationBarItem(
+                        selected=route==target || route.startsWith("$target/"),
+                        onClick={nav.navigate(target){popUpTo("home"){saveState=true};launchSingleTop=true;restoreState=true}},
+                        icon={Text(icon)},label={Text(label,style=MaterialTheme.typography.labelSmall)}
+                    ) }
                 }
             }
         }
@@ -110,7 +138,7 @@ import uz.smartstudy.domain.PhotoChallenge
             painter = androidx.compose.ui.res.painterResource(R.drawable.smartstudy_logo),
             contentDescription = stringResource(R.string.app_name),
             contentScale = androidx.compose.ui.layout.ContentScale.Fit,
-            modifier = Modifier.fillMaxWidth().height(112.dp).padding(horizontal = 12.dp)
+            modifier = Modifier.fillMaxWidth().height(112.dp).background(androidx.compose.ui.graphics.Color(0xFF101C35),MaterialTheme.shapes.medium).padding(16.dp)
         )
         Spacer(Modifier.height(8.dp))
         Text("SMART STUDY",style=MaterialTheme.typography.labelLarge,color=MaterialTheme.colorScheme.primary)
@@ -134,7 +162,7 @@ import uz.smartstudy.domain.PhotoChallenge
     LaunchedEffect(Unit) { vm.refresh() }
     val state by vm.state.collectAsStateWithLifecycle()
     if(vm.user?.text("role")=="STUDENT") {
-        StudentDashboard(vm,state,navigate)
+        StudentOverview(vm,state,navigate)
         return
     }
     Page(R.string.home) {
@@ -142,7 +170,7 @@ import uz.smartstudy.domain.PhotoChallenge
             painter = androidx.compose.ui.res.painterResource(R.drawable.smartstudy_logo),
             contentDescription = stringResource(R.string.app_name),
             contentScale = androidx.compose.ui.layout.ContentScale.Fit,
-            modifier = Modifier.fillMaxWidth().height(76.dp).padding(horizontal = 30.dp)
+            modifier = Modifier.fillMaxWidth().height(76.dp).background(androidx.compose.ui.graphics.Color(0xFF101C35),MaterialTheme.shapes.medium).padding(16.dp)
         )
         Text(vm.user?.text("name").orEmpty(),style=MaterialTheme.typography.headlineLarge)
         Text("${state.assignments.count { it.text("status")=="APPROVED" }} / ${state.assignments.size}",style=MaterialTheme.typography.displayMedium)
@@ -154,75 +182,6 @@ import uz.smartstudy.domain.PhotoChallenge
             else -> listOf("staff-security" to R.string.account_security,"notifications" to R.string.notifications,"settings" to R.string.settings)
         }
         items.forEach { (route,label) -> OutlinedButton(onClick={navigate(route)},modifier=Modifier.fillMaxWidth().heightIn(min=52.dp)) { Text(stringResource(label)) } }
-    }
-}
-@Composable private fun StudentDashboard(vm:StudyViewModel,state:StudyState,navigate:(String)->Unit) {
-    var wallet by remember { mutableStateOf<JsonObject?>(null) }
-    LaunchedEffect(Unit) { vm.run { wallet=vm.repository.api.get("rewards/wallet") } }
-    Page(R.string.home) {
-        androidx.compose.foundation.Image(
-            painter = androidx.compose.ui.res.painterResource(R.drawable.smartstudy_logo),
-            contentDescription = stringResource(R.string.app_name),
-            contentScale = androidx.compose.ui.layout.ContentScale.Fit,
-            modifier = Modifier.fillMaxWidth().height(96.dp).padding(horizontal = 20.dp)
-        )
-        Card(Modifier.fillMaxWidth()) {
-            androidx.compose.foundation.Image(
-                painter = androidx.compose.ui.res.painterResource(R.drawable.student_reading),
-                contentDescription = stringResource(R.string.study_illustration),
-                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                modifier = Modifier.fillMaxWidth().height(172.dp)
-            )
-        }
-        Text(stringResource(R.string.student_greeting,vm.user?.text("name").orEmpty()),style=MaterialTheme.typography.headlineLarge)
-        Text(stringResource(R.string.today_learning),style=MaterialTheme.typography.bodyLarge,color=MaterialTheme.colorScheme.onSurfaceVariant)
-        Card(Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.primaryContainer)) {
-            Column(Modifier.padding(24.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
-                Text(stringResource(R.string.books),style=MaterialTheme.typography.headlineMedium)
-                Text(stringResource(R.string.books_home_subtitle),style=MaterialTheme.typography.bodyLarge)
-                Button(onClick={navigate("books")},modifier=Modifier.fillMaxWidth().heightIn(min=58.dp)) { Text(stringResource(R.string.open_library),style=MaterialTheme.typography.titleMedium) }
-            }
-        }
-        Card(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(22.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
-                Text(stringResource(R.string.assignments),style=MaterialTheme.typography.titleLarge)
-                Text("${state.assignments.count { it.text("status") != "APPROVED" }}",style=MaterialTheme.typography.displayMedium,color=MaterialTheme.colorScheme.tertiary)
-                Text(stringResource(R.string.assignments_home_subtitle),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
-                OutlinedButton(onClick={navigate("assignments")},modifier=Modifier.fillMaxWidth().heightIn(min=54.dp)) { Text(stringResource(R.string.open_assignments)) }
-            }
-        }
-        Card(Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceVariant)) {
-            Row(Modifier.fillMaxWidth().padding(20.dp),horizontalArrangement=Arrangement.SpaceBetween) {
-                Column {
-                    Text(stringResource(R.string.available),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(wallet?.text("available")?.ifBlank { "0" } ?: "—",style=MaterialTheme.typography.headlineMedium)
-                }
-                Button(onClick={navigate("apps")},modifier=Modifier.heightIn(min=52.dp)) { Text(stringResource(R.string.apps)) }
-            }
-        }
-        Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(onClick={navigate("tutor")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.tutor)) }
-            OutlinedButton(onClick={navigate("quizzes")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.quizzes)) }
-        }
-        Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(onClick={navigate("rewards")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.rewards)) }
-            OutlinedButton(onClick={navigate("focus")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.focus)) }
-        }
-        Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(onClick={navigate("alarms")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.alarms)) }
-            OutlinedButton(onClick={navigate("reports")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.reports)) }
-        }
-        Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(onClick={navigate("notifications")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.notifications)) }
-            OutlinedButton(onClick={navigate("settings")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.settings)) }
-        }
-        OutlinedButton(onClick={navigate("location")},modifier=Modifier.fillMaxWidth().heightIn(min=54.dp)) { Text(stringResource(R.string.location_sharing)) }
-        Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(onClick={navigate("family")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.family)) }
-            OutlinedButton(onClick={navigate("device")},modifier=Modifier.weight(1f).heightIn(min=64.dp)) { Text(stringResource(R.string.device_status)) }
-        }
-        OutlinedButton(onClick={navigate("sleep")},modifier=Modifier.fillMaxWidth().heightIn(min=54.dp)) { Text(stringResource(R.string.sleep)) }
-        OutlinedButton(onClick={navigate("staff-security")},modifier=Modifier.fillMaxWidth().heightIn(min=54.dp)) { Text(stringResource(R.string.account_security)) }
     }
 }
 @Composable fun AssignmentScreen(vm:StudyViewModel,id:String) {
@@ -254,7 +213,12 @@ import uz.smartstudy.domain.PhotoChallenge
 }
 @Composable fun TutorScreen(vm:StudyViewModel) {
     var message by remember { mutableStateOf("") };var response by remember { mutableStateOf<JsonObject?>(null) }
-    Page(R.string.tutor) { Input(R.string.message,message){message=it};Action(R.string.ask,message.isNotBlank()){vm.run {response=vm.repository.api.post("ai/tutor",body("message" to message))}}
+    var assessment by remember {mutableStateOf<Boolean?>(null)}
+    LaunchedEffect(Unit){vm.run{assessment=vm.repository.api.get("profile/assessment").text("active")=="true"}}
+    Page(R.string.tutor) {
+        if(assessment==true) Text("Test tugaguncha AI yordamchisi vaqtincha yopilgan.")
+        if(assessment==null) Text("Test holati tekshirilmoqda…")
+        Input(R.string.message,message){message=it};Action(R.string.ask,message.isNotBlank() && assessment==false){vm.run {response=vm.repository.api.post("ai/tutor",body("message" to message))}}
         response?.let { Text(it.text("explanation"));it["hints"]?.jsonArray?.forEach { hint->Text("• "+hint.jsonPrimitive.content) };it["practice"]?.jsonArray?.forEach { q->Text(q.jsonPrimitive.content) } }
     }
 }

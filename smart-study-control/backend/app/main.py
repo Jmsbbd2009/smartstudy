@@ -13,6 +13,7 @@ from app.api.location import router as location_router
 from app.api.routes import router
 from app.api.reading import router as reading_router
 from app.api.automation import router as automation_router
+from app.api.profile import router as profile_router
 
 
 @asynccontextmanager
@@ -35,6 +36,7 @@ app.include_router(access_router)
 app.include_router(location_router)
 app.include_router(reading_router)
 app.include_router(automation_router)
+app.include_router(profile_router)
 
 
 @app.exception_handler(HTTPException)

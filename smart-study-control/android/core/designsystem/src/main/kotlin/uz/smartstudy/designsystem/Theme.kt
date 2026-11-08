@@ -24,9 +24,28 @@ private val StudyDark = darkColorScheme(
 )
 
 @Composable
-fun StudyTheme(content: @Composable () -> Unit) {
+fun StudyTheme(accent:String="sun", content: @Composable () -> Unit) {
+    val primary=when(accent) {
+        "blue" -> Color(0xFF315DD8)
+        "mint" -> Color(0xFF087F64)
+        "violet" -> Color(0xFF7545C8)
+        "ruby" -> Color(0xFFB32632)
+        "rose" -> Color(0xFFB13B76)
+        "graphite" -> Color(0xFF454F60)
+        else -> Color(0xFF9F4800)
+    }
+    val light=lightColorScheme(
+        primary=primary, onPrimary=Color.White,
+        primaryContainer=Color(0xFFFFEACD), onPrimaryContainer=Color(0xFF472600),
+        secondary=Color(0xFF087F64), onSecondary=Color.White,
+        secondaryContainer=Color(0xFFD8F8EB), onSecondaryContainer=Color(0xFF064E3B),
+        tertiary=Color(0xFFF77F00), background=Color(0xFFF7F9FF),
+        onBackground=Color(0xFF1A1A1A), surface=Color.White, onSurface=Color(0xFF1A1A1A),
+        surfaceVariant=Color(0xFFEDF1F8), onSurfaceVariant=Color(0xFF53627A),
+        outline=Color(0xFF7A879C), outlineVariant=Color(0xFFDDE4F0),
+    )
     MaterialTheme(
-        colorScheme = StudyDark,
+        colorScheme = if(accent=="navy") StudyDark else light,
         shapes = Shapes(
             extraSmall = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
             small = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),

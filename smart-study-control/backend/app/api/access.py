@@ -32,6 +32,7 @@ from app.models.entities import (
     AuthChallenge,
     Passkey,
     now,
+    uid,
 )
 from app.security.auth import current_user, require, tokens, digest, hasher, verify_password
 from app.security.rate_limit import auth_limit, limit

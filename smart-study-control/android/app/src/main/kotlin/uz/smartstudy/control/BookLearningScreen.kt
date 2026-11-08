@@ -54,6 +54,7 @@ private suspend fun cachedLearning(repository:StudyData,path:String,list:Boolean
             }}
         } else {
             val selected=plan!!
+            if(attempt?.text("status")!="ACTIVE") {
             Text(selected.text("book_title"),style=MaterialTheme.typography.headlineMedium)
             Action(R.string.back){plan=null;source=null;lesson=null;attempt=null}
             selected["progress"]?.jsonObject?.let {p->
@@ -94,8 +95,10 @@ private suspend fun cachedLearning(repository:StudyData,path:String,list:Boolean
                     attempt=vm.repository.api.post("reading/plans/${selected.text("id")}/lessons/${material.text("id")}/attempts",buildJsonObject {},java.util.UUID.randomUUID().toString());answers.clear()
                 }}
             }
+            }
             attempt?.let {test->
                 if(test.text("status")=="ACTIVE") {
+                    Text("Bilimni tekshirish · Test tugaguncha AI yordami yopilgan",style=MaterialTheme.typography.titleMedium)
                     test["questions"]!!.jsonArray.forEach {value->val question=value.jsonObject
                         Text(question.text("prompt"),style=MaterialTheme.typography.titleMedium)
                         question["options"]!!.jsonArray.forEachIndexed {index,option->

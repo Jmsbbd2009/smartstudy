@@ -27,15 +27,17 @@ def verify_password(raw, hashed):
 
 
 def tokens(db, user, family=None):
+    family = family or uid()
     raw = secrets.token_urlsafe(48)
     db.add(
         RefreshToken(
-            user_id=user.id, digest=digest(raw), family=family or uid(), expires_at=now() + timedelta(days=30)
+            user_id=user.id, digest=digest(raw), family=family, expires_at=now() + timedelta(days=30)
         )
     )
     access = jwt.encode(
         {
             "sub": user.id,
+            "sid": family,
             "ver": user.auth_epoch,
             "type": "access",
             "iat": now(),
@@ -85,6 +87,13 @@ def current_user(
         raise HTTPException(401, "Invalid or expired token")
     if not user or not user.active or payload.get("ver", 0) != user.auth_epoch:
         raise HTTPException(401, "Account unavailable")
+    session_id = payload.get("sid")
+    if session_id and not db.scalar(select(RefreshToken.id).where(
+        RefreshToken.user_id == user.id, RefreshToken.family == session_id,
+        RefreshToken.revoked.is_(False), RefreshToken.expires_at > now(),
+    ).limit(1)):
+        raise HTTPException(401, "Session ended; sign in again")
+    request.state.session_id = session_id
     if user.must_change_password and request.url.path not in {
         "/api/v1/auth/password",
         "/api/v1/auth/logout",

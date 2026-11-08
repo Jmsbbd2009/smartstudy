@@ -85,17 +85,44 @@ jobs:
       - run: chmod +x gradlew
       - name: Test and build installable test APK
         run: ./gradlew :domain:test testDebugUnitTest assembleDebug assembleDebugAndroidTest "-PDEBUG_API_URL=$STUDY_API_URL"
+      - name: Allow emulator acceleration
+        run: sudo chmod a+rw /dev/kvm
+      - name: Android 11 emulator checks
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          disable-animations: true
+          working-directory: smart-study-control/android
+          script: |
+            ./gradlew connectedDebugAndroidTest "-PDEBUG_API_URL=$STUDY_API_URL"
+            adb shell am force-stop uz.smartstudy.control.preview
+            adb shell am start -n uz.smartstudy.control.preview/uz.smartstudy.control.MainActivity
+            sleep 3
+            adb shell screencap -p /sdcard/login.png
+            adb pull /sdcard/login.png login.png
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-ui-verification
+          path: |
+            smart-study-control/android/login.png
+            smart-study-control/android/app/build/reports/androidTests
+      - name: Verify APK signature and compatibility
+        run: |
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging app/build/outputs/apk/debug/app-debug.apk
       - name: Name APK and checksum
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/SmartStudy-0.4.2-test.apk
+          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/SmartStudy-0.5.0-test.apk
           cd app/build/outputs/apk/debug
-          sha256sum SmartStudy-0.4.2-test.apk > SmartStudy-0.4.2-test.apk.sha256
+          sha256sum SmartStudy-0.5.0-test.apk > SmartStudy-0.5.0-test.apk.sha256
       - uses: actions/upload-artifact@v4
         with:
-          name: SmartStudy-0.4.2-test-apk
+          name: SmartStudy-0.5.0-test-apk
           path: |
-            smart-study-control/android/app/build/outputs/apk/debug/SmartStudy-0.4.2-test.apk
-            smart-study-control/android/app/build/outputs/apk/debug/SmartStudy-0.4.2-test.apk.sha256
+            smart-study-control/android/app/build/outputs/apk/debug/SmartStudy-0.5.0-test.apk
+            smart-study-control/android/app/build/outputs/apk/debug/SmartStudy-0.5.0-test.apk.sha256
           if-no-files-found: error
           retention-days: 30
   publish-preview:
@@ -110,16 +137,16 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: SmartStudy-0.4.2-test-apk
+          name: SmartStudy-0.5.0-test-apk
           path: apk
       - name: Publish tested preview APK
         run: |
           cat > notes.md <<'NOTES'
-          Android 0.4.2 test build with animated SMART STUDY branding, reading illustration, book-first dashboard and live HTTPS API connection.
+          Android 0.5.0 preview: light orange/green UI, bottom navigation, five profile pages, local themes/status, reading/result history, own-account session revocation, and server-enforced AI restriction during active tests. See docs/PROFILE_PRD_UZ.md for unfinished features. New profile APIs require deploying this backend commit. Debug package is uz.smartstudy.control.preview and installs separately from the older app.
 
           This is a debug-signed preview. Device Owner, alarm/camera/location hardware behavior still requires real-device qualification. A production update requires a stable release signing key. Do not uninstall an existing app without preserving its data.
           NOTES
-          tag="v0.4.2-preview-${GITHUB_SHA:0:7}"
+          tag="v0.5.0-preview-${GITHUB_SHA:0:7}"
           if ! gh release view "$tag" >/dev/null 2>&1; then
-            gh release create "$tag" apk/* --target "$GITHUB_SHA" --title 'Smart Study 0.4.2 preview' --notes-file notes.md --prerelease
+            gh release create "$tag" apk/* --target "$GITHUB_SHA" --title 'Smart Study 0.5.0 preview' --notes-file notes.md --prerelease
           fi

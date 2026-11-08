@@ -327,6 +327,7 @@ def award(db, attempt, plan, force=False):
 def attempt_output(attempt):
     result = {
         "id": attempt.id,
+        "finished_at": attempt.finished_at.isoformat() + "Z" if attempt.finished_at else None,
         "plan_id": attempt.plan_id,
         "lesson_id": attempt.lesson_id,
         "status": attempt.status,

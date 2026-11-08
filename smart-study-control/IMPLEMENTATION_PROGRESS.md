@@ -1,5 +1,32 @@
 # Implementation progress
 
+## 2026-11-09 — 0.5.0 native profile and refreshed navigation
+
+Implemented: light orange/green theme, role-aware bottom navigation, compact dashboard using live wallet/plans and persisted alarms, five independent profile routes, eight per-account local themes/status emoji, real reading/result history, own-account session listing/revocation with access-token sid enforcement, AI block during active tests, hidden reading material during active reading tests. See docs/PROFILE_PRD_UZ.md for exact scope and unresolved features.
+
+Local verification: 62 existing backend tests passed after session changes; 2 new session isolation/rotation tests passed; Ruff passed. Later assessment checks are included in CI. Android SDK absent and Gradle download blocked locally; APK verification is delegated to GitHub Actions. CI result will be recorded after completion.
+
+The debug application ID is now uz.smartstudy.control.preview, so the new test APK can coexist with the previous separately signed app. No old app data is deleted or migrated; server accounts remain the same. A stable production signing key is still required for production upgrades. No hardware Device Owner qualification is claimed.
+
+
+Updated: 2026-11-08, web first-screen design review.
+
+## Web sign-in preview
+
+Completed:
+- Reworked the real React sign-in screen with the supplied Smart Study logo, responsive desktop/mobile layout, restrained entrance animation, accessible focus states, and Uzbek product copy.
+- Kept the actual Telegram OTP, passkey, and password login handlers. The role is determined by the authenticated server account; the page does not offer a user-selected role. Renamed passkey action so it does not promise face recognition.
+- Localized visible role names and stopped querying assignments for platform/school administrators, whose overview uses the service-health panel.
+- Added the logo to the admin web public assets.
+
+Verification:
+- `npm run build` passed (Vite reports two non-fatal annotation warnings from the installed Zod package).
+- `npm test`: 13 passed, 2 skipped.
+- `PATH=/tmp/ssc-venv/bin:$PATH npm run test:e2e`: 2 passed. This exercises staff access/notifications and the PDF reading-test reward flow against the local API.
+
+Known limitation:
+- This workspace has no Git remote metadata and no configured production browser preview. This change is local; it has not been pushed or deployed. The sign-in page requires the configured backend for actual authentication.
+
 Updated: 2026-11-07, v0.4.2 GitHub release and Render deployment.
 
 ## v0.4.2 — Published Android preview

@@ -74,12 +74,15 @@ def test_quiz_answers_hidden_until_completed(homework):
     question = detail["questions"][0]
     assert "answer" not in question and "explanation" not in question
     assert c.post("/api/v1/quizzes/" + q["id"] + "/start", headers=sh).status_code == 200
+    assert c.get("/api/v1/profile/assessment", headers=sh).json()["active"]
+    assert c.post("/api/v1/ai/tutor", headers=sh, json={"message": "Javobni ayt"}).status_code == 409
     for _ in range(2):
         result = c.post(
             "/api/v1/quizzes/" + q["id"] + "/finish", headers=sh, json={"answers": {question["id"]: "4"}}
         )
         assert result.status_code == 200, result.text
         assert result.json()["score"] == 1 and result.json()["explanations"][0]["answer"] == "4"
+    assert not c.get("/api/v1/profile/assessment", headers=sh).json()["active"]
 
 
 def test_app_inventory_requires_guardian_authorization_and_stays_private(people):

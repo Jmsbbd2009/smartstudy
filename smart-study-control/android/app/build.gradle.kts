@@ -9,12 +9,12 @@ android {
     compileSdk = 35
     defaultConfig {
         applicationId = "uz.smartstudy.control"
-        minSdk = 26; targetSdk = 35; versionCode = 7; versionName = "0.4.2"
+        minSdk = 26; targetSdk = 35; versionCode = 8; versionName = "0.5.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true; buildConfig = true }
     buildTypes {
-        debug { buildConfigField("String", "API_URL", "\"${debugApi.get()}\""); manifestPlaceholders["cleartext"] = "true" }
+        debug { applicationIdSuffix = ".preview"; buildConfigField("String", "API_URL", "\"${debugApi.get()}\""); manifestPlaceholders["cleartext"] = "true" }
         release {
             buildConfigField("String", "API_URL", "\"${releaseApi.get()}\"")
             manifestPlaceholders["cleartext"] = "false"

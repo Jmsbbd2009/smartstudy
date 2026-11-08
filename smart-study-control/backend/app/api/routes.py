@@ -904,8 +904,12 @@ def audit_list(user=Depends(current_user), db=Depends(get_db, scope="function"))
 
 
 @router.post("/ai/tutor", response_model=TutorAnswer)
-def tutor(body: TutorIn, user=Depends(current_user)):
+def tutor(body: TutorIn, user=Depends(current_user), db=Depends(get_db, scope="function")):
     require(user, "STUDENT")
+    from app.security.assessment import assessment_active
+
+    if assessment_active(db, user.id):
+        raise HTTPException(409, "Test tugaguncha AI yordami vaqtincha yopilgan")
     limit("ai:" + user.id, 10)
     return provider.structured(
         body.subject + ": " + body.message,
