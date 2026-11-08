@@ -173,8 +173,19 @@ import uz.smartstudy.domain.PhotoChallenge
             modifier = Modifier.fillMaxWidth().height(76.dp).background(androidx.compose.ui.graphics.Color(0xFF101C35),MaterialTheme.shapes.medium).padding(16.dp)
         )
         Text(vm.user?.text("name").orEmpty(),style=MaterialTheme.typography.headlineLarge)
-        Text("${state.assignments.count { it.text("status")=="APPROVED" }} / ${state.assignments.size}",style=MaterialTheme.typography.displayMedium)
-        LinearProgressIndicator(progress={if(state.assignments.isEmpty()) 0f else state.assignments.count {it.text("status")=="APPROVED"}.toFloat()/state.assignments.size},modifier=Modifier.fillMaxWidth())
+        if(vm.user?.text("role")=="SUPER_ADMIN") {
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(18.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) {
+                    Text("Platforma boshqaruvi",style=MaterialTheme.typography.titleLarge)
+                    Text("Xodimlar, kitoblar, vazifalar va tizim sozlamalarini boshqaring.",style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        } else {
+            val approved=state.assignments.count { it.text("status")=="APPROVED" }
+            Text(stringResource(R.string.success),style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("$approved / ${state.assignments.size}",style=MaterialTheme.typography.displayMedium)
+            if(state.assignments.isNotEmpty()) LinearProgressIndicator(progress={approved.toFloat()/state.assignments.size},modifier=Modifier.fillMaxWidth())
+        }
         val items=when(vm.user?.text("role")) {
             "TEACHER" -> listOf("books" to R.string.books,"assignments" to R.string.assignments,"quizzes" to R.string.quizzes,"staff-security" to R.string.account_security,"notifications" to R.string.notifications,"settings" to R.string.settings)
             "SUPER_ADMIN" -> listOf("books" to R.string.books,"assignments" to R.string.assignments,"staff-security" to R.string.staff_security,"notifications" to R.string.notifications,"settings" to R.string.settings)
