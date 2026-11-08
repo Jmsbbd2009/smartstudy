@@ -13,12 +13,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.animation.core.Animatable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -33,6 +37,10 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun SmartStudySplash() {
+    val slideIn = remember { Animatable(96f) }
+    LaunchedEffect(Unit) {
+        slideIn.animateTo(0f, animationSpec = tween(durationMillis = 850, delayMillis = 100))
+    }
     val transition = rememberInfiniteTransition(label = "brand-pulse")
     val scale by transition.animateFloat(
         initialValue = 0.975f,
@@ -55,7 +63,7 @@ fun SmartStudySplash() {
                 painter = painterResource(R.drawable.smartstudy_logo),
                 contentDescription = stringResource(R.string.app_name),
                 contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxWidth().height(142.dp).scale(scale),
+                modifier = Modifier.fillMaxWidth().height(142.dp).offset(x = slideIn.value.dp).scale(scale),
             )
             Text(
                 text = stringResource(R.string.app_name),
